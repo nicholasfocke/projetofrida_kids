@@ -104,6 +104,10 @@ const Login = () => {
   const handleRegisterRedirect = () => {
     router.push('/register');
   };
+  // Função para redirecionar para a página de recuperação de senha
+  const handleForgotPasswordRedirect = () => {
+    router.push('/esquecisenha'); 
+  };
 
   return (
     <div className={styles.container}>
@@ -134,6 +138,10 @@ const Login = () => {
 
         <button onClick={handleRegisterRedirect} className={styles.buttonSecondary}>
           Criar uma nova conta
+        </button>
+        {/* Botão de redirecionamento para a recuperação de senha */}
+        <button onClick={handleForgotPasswordRedirect} className={styles.buttonForgotPass}>
+          Esqueci minha senha
         </button>
       </div>
     </div>
