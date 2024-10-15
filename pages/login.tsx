@@ -30,7 +30,7 @@ const Login = () => {
       const now = new Date().getTime();
       if (data.blockedUntil && data.blockedUntil.seconds * 1000 > now) {
         const minutesLeft = Math.ceil((data.blockedUntil.seconds * 1000 - now) / 60000);
-        throw new Error(`Sua conta está bloqueada. Tente novamente em ${minutesLeft} minutos.`);
+        throw new Error(`Número de tentativas excedido. Tente novamente em ${minutesLeft} minutos.`);
       }
     }
   };
@@ -41,25 +41,22 @@ const Login = () => {
   
     if (!docSnap.exists()) {
       // Se o documento não existe, crie-o com 1 tentativa
-      console.log('Criando novo documento para o usuário:', email); // Adicionar log em português
       await setDoc(docRef, { count: 1, blockedUntil: null });
     } else {
       const data = docSnap.data();
       if (data.count >= 4) {
         // Se o usuário atingiu 5 tentativas, bloqueie-o por 30 minutos
-        console.log('Usuário atingiu 5 tentativas, bloqueando conta:', email); // Log para bloqueio do usuário
         await updateDoc(docRef, {
           count: 5,
           blockedUntil: new Date(Date.now() + 30 * 60000), // Bloqueia por 30 minutos
         });
+        throw new Error('Você errou o login 5 vezes. Sua conta foi bloqueada por 30 minutos.');
       } else {
         // Incrementa o contador de tentativas
-        console.log('Incrementando tentativas de login para o usuário:', email); // Log para incremento de tentativas
         await updateDoc(docRef, { count: data.count + 1 });
       }
     }
   };
-  
 
   // Função para resetar o contador de tentativas após login bem-sucedido
   const resetLoginAttempts = async (email: string) => {
@@ -85,17 +82,22 @@ const Login = () => {
       // Redirecionar para a página inicial
       router.push('/');
     } catch (err: any) {
+      // Verificando os diferentes tipos de erro e personalizando as mensagens
       if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         try {
           await incrementLoginAttempts(formData.email);
-          setError('Email ou senha incorretos.');
+          setError('Senha ou email incorreto.');  // Personalize a mensagem
         } catch (blockError: any) {
           setError(blockError.message);
         }
       } else if (err.code === 'auth/invalid-email') {
-        setError('Email inválido.');
+        setError('Formato de email inválido.');  // Mensagem personalizada
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Muitas tentativas falhadas. Tente novamente mais tarde ou redefina sua senha.');  // Mensagem personalizada
+      } else if (err.code === 'auth/invalid-credential') {
+        setError('Credenciais inválidas. Por favor, verifique e tente novamente.'); // Mensagem personalizada
       } else {
-        setError(err.message || 'Erro de login. Tente novamente.');
+        setError('Erro de login. Tente novamente.'); // Mensagem genérica
       }
     }
   };
