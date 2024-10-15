@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore'; // Firestore functions
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'; // Firestore functions
 import { auth, firestore } from '../firebase/firebaseConfig'; // Firebase config
-import { Timestamp } from 'firebase/firestore';
 import styles from './Login.module.css'; // Importando o CSS module
 
 const Login = () => {
@@ -21,43 +20,46 @@ const Login = () => {
     });
   };
 
-  // Função para verificar se o usuário está bloqueado
+  // Função para verificar se o usuário está bloqueado e retornar os minutos restantes
   const checkBlockStatus = async (email: string) => {
     const docRef = doc(firestore, 'loginAttempts', email);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      if (data.blockedUntil && data.blockedUntil.toDate() > new Date()) {
-        const minutesLeft = Math.ceil((data.blockedUntil.toDate().getTime() - new Date().getTime()) / 60000);
+      const now = new Date().getTime();
+      if (data.blockedUntil && data.blockedUntil.seconds * 1000 > now) {
+        const minutesLeft = Math.ceil((data.blockedUntil.seconds * 1000 - now) / 60000);
         throw new Error(`Sua conta está bloqueada. Tente novamente em ${minutesLeft} minutos.`);
       }
     }
   };
 
-  // Função para incrementar o contador de tentativas erradas
   const incrementLoginAttempts = async (email: string) => {
     const docRef = doc(firestore, 'loginAttempts', email);
     const docSnap = await getDoc(docRef);
-
+  
     if (!docSnap.exists()) {
-      // Se não existe, crie um documento com 1 tentativa
+      // Se o documento não existe, crie-o com 1 tentativa
+      console.log('Criando novo documento para o usuário:', email); // Adicionar log em português
       await setDoc(docRef, { count: 1, blockedUntil: null });
     } else {
       const data = docSnap.data();
-      if (data.count >= 5) {
-        // Bloquear por 30 minutos
-        await setDoc(docRef, {
-          blockedUntil: Timestamp.fromDate(new Date(Date.now() + 30 * 60000)),
-          count: 5 // Não precisa mais incrementar, já está bloqueado
+      if (data.count >= 4) {
+        // Se o usuário atingiu 5 tentativas, bloqueie-o por 30 minutos
+        console.log('Usuário atingiu 5 tentativas, bloqueando conta:', email); // Log para bloqueio do usuário
+        await updateDoc(docRef, {
+          count: 5,
+          blockedUntil: new Date(Date.now() + 30 * 60000), // Bloqueia por 30 minutos
         });
-        throw new Error('Você errou o login 5 vezes. Sua conta foi bloqueada por 30 minutos.');
       } else {
-        // Incrementar o contador
-        await setDoc(docRef, { count: data.count + 1 }, { merge: true });
+        // Incrementa o contador de tentativas
+        console.log('Incrementando tentativas de login para o usuário:', email); // Log para incremento de tentativas
+        await updateDoc(docRef, { count: data.count + 1 });
       }
     }
   };
+  
 
   // Função para resetar o contador de tentativas após login bem-sucedido
   const resetLoginAttempts = async (email: string) => {
@@ -65,14 +67,16 @@ const Login = () => {
     await setDoc(docRef, { count: 0, blockedUntil: null }, { merge: true });
   };
 
+  // Função de envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Limpa os erros anteriores ao tentar novamente
+    setError(''); // Limpa os erros anteriores
+
     try {
       // Verifica se o usuário está bloqueado
       await checkBlockStatus(formData.email);
 
-      // Tenta fazer o login
+      // Tenta realizar o login
       await signInWithEmailAndPassword(auth, formData.email, formData.senha);
 
       // Resetar as tentativas de login após sucesso
@@ -81,28 +85,24 @@ const Login = () => {
       // Redirecionar para a página inicial
       router.push('/');
     } catch (err: any) {
-      // Se o erro for de senha incorreta ou usuário não encontrado, incremente o contador
-      if (err.code === 'auth/wrong-password') {
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         try {
           await incrementLoginAttempts(formData.email);
           setError('Email ou senha incorretos.');
         } catch (blockError: any) {
           setError(blockError.message);
         }
-      } else if (err.code === 'auth/user-not-found') {
-        setError('Essa conta não existe.');
       } else if (err.code === 'auth/invalid-email') {
         setError('Email inválido.');
       } else {
-        // Para qualquer outro erro (ex. bloqueio)
-        setError('Erro de login. Tente novamente.');
+        setError(err.message || 'Erro de login. Tente novamente.');
       }
     }
   };
 
   // Função para redirecionar para a página de registro
   const handleRegisterRedirect = () => {
-    router.push('/register'); // Substitua '/register' pelo caminho correto da sua página de registro
+    router.push('/register');
   };
 
   return (
@@ -132,7 +132,6 @@ const Login = () => {
           <button type="submit" className={styles.button}>Entrar</button>
         </form>
 
-        {/* Botão de redirecionamento para o registro */}
         <button onClick={handleRegisterRedirect} className={styles.buttonSecondary}>
           Criar uma nova conta
         </button>
