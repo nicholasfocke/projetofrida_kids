@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'; // Firestore functions
 import { auth, firestore } from '../firebase/firebaseConfig'; // Firebase config
-import styles from './Login.module.css'; // Importando o CSS module
+import styles from './login.module.css'; 
 
 const Login = () => {
   const [formData, setFormData] = useState({
