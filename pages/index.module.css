@@ -1,0 +1,107 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+  }
+  
+  .formContainer {
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+  }
+  
+  .title {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .inputoption {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-left: 50px;
+    width: 250px;
+  }
+  
+  .inputoption:focus {
+    border-color: #0070f3;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 112, 243, 0.5);
+  }
+
+  .inputnome {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-left: 100px;
+    margin-bottom: 20px;
+    width: 260px;
+  }
+  
+  .inputnome:focus {
+    border-color: #0070f3;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 112, 243, 0.5);
+  }
+  
+  .formGroup {
+    margin-bottom: 20px;
+    margin-left: 70px;
+  }
+  
+  .times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .timeButton {
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    background-color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  
+  .timeButton:hover {
+    background-color: #f0f2f5;
+  }
+  
+  .activeTime {
+    background-color: #0070f3;
+    color: white;
+    border-color: #0070f3;
+  }
+  
+  .button {
+    padding: 12px;
+    border: none;
+    background-color: #0070f3;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .button:hover {
+    background-color: #005bb5;
+  }
+  

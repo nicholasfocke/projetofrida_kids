@@ -128,23 +128,6 @@ const Register = () => {
               />
             )}
           </InputMask>
-          {/* Campo de CPF com máscara */}
-          <InputMask
-            mask="999.999.999-99"
-            value={formData.cpf}
-            onChange={handleChange}
-          >
-            {(inputProps: any) => (
-              <input
-                {...inputProps}
-                name="cpf"
-                type="text"
-                placeholder="CPF"
-                required
-                className={styles.input}
-              />
-            )}
-          </InputMask>
           <input 
             name="senha" 
             type="password" 
