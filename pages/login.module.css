@@ -1,4 +1,3 @@
-/* Login.module.css */
 .container {
     display: flex;
     justify-content: center;
@@ -21,7 +20,7 @@
     font-size: 24px;
     color: #333;
     margin-bottom: 20px;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
   }
   
 .form {
@@ -79,3 +78,19 @@
     background-color: #0070f3;
     color: white;
   }  
+.buttonForgotPass{
+    margin-top: 20px;
+    padding: 12px;
+    margin-left: 40px;
+    border: 1px solid #0070f3;
+    background-color: transparent;
+    color: #0070f3;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+.buttonForgotPass:hover {
+  background-color: #0070f3;
+  color: white;
+}  
