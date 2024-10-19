@@ -1,0 +1,29 @@
+/* Certifique-se de que o body ocupe a tela inteira */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  .layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Faz com que o layout ocupe toda a altura da viewport */
+  }
+  
+  main {
+    flex: 1; /* Faz o conteúdo expandir para preencher o espaço disponível */
+    padding: 20px; /* Margem interna */
+  }
+  
+  .footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+  }
+  
