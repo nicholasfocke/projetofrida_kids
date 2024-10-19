@@ -70,8 +70,8 @@ const Layout = ({ children }: LayoutProps) => {
             <div className={styles.closeMenuIcon} onClick={toggleMenu}>
               <FaTimes size={24} />
             </div>
-            <a className={styles.headerLinks} href="/">Serviços</a>
-            <a className={styles.headerLinks} href="/">Perfil</a>
+            <a className={styles.headerLinks} href="/">Agendamento</a>
+            <a className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</a>
           </nav>
           
         </div>

@@ -6,6 +6,8 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore'; 
 import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração do Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import styles from './index.module.css'; // Importando o CSS module
+import { isPast, isSunday, format } from 'date-fns'; // Biblioteca de manipulação de datas
+import { ptBR } from 'date-fns/locale'; // Localização para datas
 
 const Index = () => {
   const [user, setUser] = useState(null); // Estado para guardar o usuário logado
@@ -40,19 +42,33 @@ const Index = () => {
     });
   };
 
+  // Função para verificar se a data é válida (não pode ser domingo, segunda ou passada)
+  const isDateValid = (date: Date) => {
+    const isMonday = date.getDay() === 1; // Segunda-feira
+    const isSunday = date.getDay() === 0; // Domingo
+    return !isPast(date) && !isMonday && !isSunday;
+  };
+
   const handleDateChange = (date: Date) => {
+    if (!isDateValid(date)) {
+      setError('Você não pode agendar para datas passadas, domingos ou segundas.');
+      setSelectedDate(null); // Limpar a data se for inválida
+      return;
+    }
+
     setSelectedDate(date);
-    setAvailableTimes(times); // Simulação de todos os horários disponíveis
+    setAvailableTimes(getAvailableTimesForDay(date)); // Atualizar os horários disponíveis
     setAppointmentData({
       ...appointmentData,
-      date: date.toISOString().split('T')[0], // Formato yyyy-mm-dd
+      date: format(date, 'yyyy-MM-dd'), // Formato yyyy-mm-dd para salvar no Firebase
     });
+    setError(''); // Limpar mensagem de erro
   };
 
   const handleTimeChange = (time: string) => {
     setAppointmentData({
       ...appointmentData,
-      time,
+      time: time,
     });
   };
 
@@ -64,14 +80,10 @@ const Index = () => {
       return;
     }
 
-    // Verificar se a data é passada
-    const today = new Date();
-    const selectedDateTime = new Date(appointmentData.date);
-    selectedDateTime.setHours(parseInt(appointmentData.time.split(':')[0]));
-    selectedDateTime.setMinutes(parseInt(appointmentData.time.split(':')[1]));
-    
-    if (new Date(appointmentData.date) < today) {
-      setError('Você não pode agendar para uma data que já passou.');
+    // Verificar se a data é válida novamente antes de enviar
+    const selectedDate = new Date(appointmentData.date);
+    if (!isDateValid(selectedDate)) {
+      setError('Você não pode agendar para datas passadas, domingos ou segundas.');
       return;
     }
 
@@ -98,6 +110,7 @@ const Index = () => {
         hora: appointmentData.time,
         usuarioId: user?.uid, // UID do usuário logado
         usuarioEmail: user?.email, // Email do usuário logado (opcional)
+        status: 'agendado', // Adicionando o status "agendado"
       });
 
       alert('Agendamento realizado com sucesso!');
@@ -166,41 +179,29 @@ const Index = () => {
                 value={appointmentData.childName}
                 onChange={handleInputChange}
                 required
-                className={styles.inputnome}
               />
-            </div>
-
-            <div className={styles.formGroup}>
               <Calendar
                 onChange={handleDateChange}
                 value={selectedDate}
-                tileDisabled={({ date }) => {
-                  const day = date.getDay();
-                  const today = new Date();
-                  return day === 0 || day === 1 || date < new Date(today.toDateString()); // Desabilitar domingo, segunda e datas passadas
-                }}
               />
+              {selectedDate && (
+                <select
+                  name="time"
+                  value={appointmentData.time}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  required
+                >
+                  <option value="">Selecione o horário</option>
+                  {availableTimes.map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
-            {selectedDate && (
-              <div className={styles.formGroup}>
-                <label>Selecione um horário disponível:</label>
-                <div className={styles.times}>
-                  {getAvailableTimesForDay(selectedDate).map((time) => (
-                    <button
-                      key={time}
-                      type="button"
-                      className={`${styles.timeButton} ${appointmentData.time === time ? styles.activeTime : ''}`}
-                      onClick={() => handleTimeChange(time)}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <button type="submit" className={styles.button}>Agendar</button>
+            <button type="submit">Agendar</button>
           </form>
         </div>
       </div>
