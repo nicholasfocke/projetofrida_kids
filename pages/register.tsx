@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore'; // Use doc e setDoc para criar o documento com o UID
 import { auth, firestore } from '../firebase/firebaseConfig';
 import bcrypt from 'bcryptjs';
-import InputMask from 'react-input-mask';  // Importando a biblioteca de máscaras
-import styles from './register.module.css'; 
+import InputMask from 'react-input-mask';
+import styles from './register.module.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -26,24 +26,6 @@ const Register = () => {
     });
   };
 
-  const checkDuplicateUser = async (email: string, telefone: string, cpf: string) => {
-    const usersRef = collection(firestore, 'users');
-
-    // Verificar duplicidade de telefone
-    const phoneQuery = query(usersRef, where('telefone', '==', telefone));
-    const phoneExists = await getDocs(phoneQuery);
-    if (!phoneExists.empty) {
-      throw new Error('Esse número de telefone já está cadastrado.');
-    }
-
-    // Verificar duplicidade de CPF
-    const cpfQuery = query(usersRef, where('cpf', '==', cpf));
-    const cpfExists = await getDocs(cpfQuery);
-    if (!cpfExists.empty) {
-      throw new Error('Esse CPF já está cadastrado.');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.senha !== formData.confirmarSenha) {
@@ -52,24 +34,23 @@ const Register = () => {
     }
 
     try {
-      // Verificar duplicidade de telefone e CPF no Firestore
-      await checkDuplicateUser(formData.email, formData.telefone, formData.cpf);
-
       // Criar o usuário no Firebase Authentication
-      await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
+      const user = userCredential.user;
+
       const hashedPassword = await bcrypt.hash(formData.senha, 10);
 
-      // Adicionar o usuário na coleção 'users' do Firestore
-      await addDoc(collection(firestore, 'users'), {
+      // Criar o documento com o UID do usuário no Firestore
+      await setDoc(doc(firestore, 'users', user.uid), {
         nome: formData.nome,
         email: formData.email,
         telefone: formData.telefone,
         cpf: formData.cpf,
         senha: hashedPassword,
-        tipo: 'cliente',
+        tipo: 'cliente', // Define o tipo do usuário
       });
 
-      // Redireciona o usuário para a página index após o cadastro
+      // Redireciona o usuário para a página inicial
       router.push('/');
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
@@ -111,7 +92,6 @@ const Register = () => {
             required 
             className={styles.input}
           />
-          {/* Campo de Telefone com máscara */}
           <InputMask
             mask="(99) 99999-9999"
             value={formData.telefone}

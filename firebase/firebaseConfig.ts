@@ -1,6 +1,6 @@
 // Importar somente o que é necessário do SDK Firebase
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Configuração do Firebase
@@ -16,7 +16,17 @@ const firebaseConfig = {
 // Inicializa o Firebase apenas se ainda não foi inicializado
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
+// Configurando persistência de sessão
+const auth = getAuth(app);
+setPersistence(auth, browserSessionPersistence)
+  .then(() => {
+    console.log('Persistência de sessão configurada');
+  })
+  .catch((error) => {
+    console.error('Erro ao configurar persistência de sessão:', error);
+  });
+
 // Exportar auth e firestore usando as funções apropriadas
-export const auth = getAuth(app);
 export const firestore = getFirestore(app);
+export { auth };
 export default app;

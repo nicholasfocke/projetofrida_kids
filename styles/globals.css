@@ -1,29 +1,111 @@
-/* Certifique-se de que o body ocupe a tela inteira */
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+:root{
+  --colorAmarelo: #f5b856;
+  --colorAzul: #0070f3;
+}
+
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-  }
-  
-  .layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Faz com que o layout ocupe toda a altura da viewport */
-  }
-  
-  main {
-    flex: 1; /* Faz o conteúdo expandir para preencher o espaço disponível */
-    padding: 20px; /* Margem interna */
-  }
-  
-  .footer {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
-    left: 0;
-  }
-  
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.titleUser{
+  font-size: 30px;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+ background-color: var(--colorAmarelo);
+  color: white;
+  text-align: center;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Garante que o header fique acima de outros conteúdos */
+  margin-bottom: 50px;
+}
+
+.header-content {
+   font-family: 'Patrick Hand', cursive;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header nav a {
+  color: white;
+  text-decoration: none;
+  margin: 0 15px;
+  font-size: 16px;
+}
+
+.header nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  flex: 1;
+  padding: 100px 20px; /* Adicione padding extra para evitar que o conteúdo fique escondido atrás do header */
+}
+
+.footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.contact-info {
+  margin-bottom: 10px;
+}
+
+.contact-button {
+  background-color: #007bff;
+  border: none;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.contact-button a {
+  color: white;
+  text-decoration: none;
+}
+
+.contact-button:hover {
+  background-color: #0056b3;
+}
+
+.social-media a {
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.social-media svg {
+  vertical-align: middle;
+}
+.headerLinks{
+  font-size: 25px !important;
+}

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'; // Firestore functions
-import { auth, firestore } from '../firebase/firebaseConfig'; // Firebase config
-import styles from './login.module.css'; 
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, firestore } from '../firebase/firebaseConfig';
+import styles from './login.module.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +20,7 @@ const Login = () => {
     });
   };
 
-  // Função para verificar se o usuário está bloqueado e retornar os minutos restantes
+  // Verifica se o usuário está bloqueado
   const checkBlockStatus = async (email: string) => {
     const docRef = doc(firestore, 'loginAttempts', email);
     const docSnap = await getDoc(docRef);
@@ -35,30 +35,28 @@ const Login = () => {
     }
   };
 
+  // Incrementa as tentativas de login
   const incrementLoginAttempts = async (email: string) => {
     const docRef = doc(firestore, 'loginAttempts', email);
     const docSnap = await getDoc(docRef);
   
     if (!docSnap.exists()) {
-      // Se o documento não existe, crie-o com 1 tentativa
       await setDoc(docRef, { count: 1, blockedUntil: null });
     } else {
       const data = docSnap.data();
       if (data.count >= 4) {
-        // Se o usuário atingiu 5 tentativas, bloqueie-o por 30 minutos
         await updateDoc(docRef, {
           count: 5,
           blockedUntil: new Date(Date.now() + 30 * 60000), // Bloqueia por 30 minutos
         });
         throw new Error('Você errou o login 5 vezes. Sua conta foi bloqueada por 30 minutos.');
       } else {
-        // Incrementa o contador de tentativas
         await updateDoc(docRef, { count: data.count + 1 });
       }
     }
   };
 
-  // Função para resetar o contador de tentativas após login bem-sucedido
+  // Reseta as tentativas após login bem-sucedido
   const resetLoginAttempts = async (email: string) => {
     const docRef = doc(firestore, 'loginAttempts', email);
     await setDoc(docRef, { count: 0, blockedUntil: null }, { merge: true });
@@ -70,43 +68,40 @@ const Login = () => {
     setError(''); // Limpa os erros anteriores
 
     try {
-      // Verifica se o usuário está bloqueado
       await checkBlockStatus(formData.email);
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.senha);
+      const user = userCredential.user;
 
-      // Tenta realizar o login
-      await signInWithEmailAndPassword(auth, formData.email, formData.senha);
+      // Atualiza ou cria o documento com o UID no Firestore
+      await setDoc(doc(firestore, 'users', user.uid), {
+        email: user.email,
+        // Adicionar outros campos que possam ser atualizados no login
+      }, { merge: true });
 
-      // Resetar as tentativas de login após sucesso
       await resetLoginAttempts(formData.email);
-
-      // Redirecionar para a página inicial
       router.push('/');
     } catch (err: any) {
-      // Verificando os diferentes tipos de erro e personalizando as mensagens
       if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         try {
           await incrementLoginAttempts(formData.email);
-          setError('Senha ou email incorreto.');  // Personalize a mensagem
+          setError('Senha ou email incorreto.');
         } catch (blockError: any) {
           setError(blockError.message);
         }
       } else if (err.code === 'auth/invalid-email') {
-        setError('Formato de email inválido.');  // Mensagem personalizada
+        setError('Formato de email inválido.');
       } else if (err.code === 'auth/too-many-requests') {
-        setError('Muitas tentativas falhadas. Tente novamente mais tarde ou redefina sua senha.');  // Mensagem personalizada
-      } else if (err.code === 'auth/invalid-credential') {
-        setError('Credenciais inválidas. Por favor, verifique e tente novamente.'); // Mensagem personalizada
+        setError('Muitas tentativas falhadas. Tente novamente mais tarde ou redefina sua senha.');
       } else {
-        setError('Erro de login. Tente novamente.'); // Mensagem genérica
+        setError('Erro de login. Tente novamente.');
       }
     }
   };
 
-  // Função para redirecionar para a página de registro
   const handleRegisterRedirect = () => {
     router.push('/register');
   };
-  // Função para redirecionar para a página de recuperação de senha
+
   const handleForgotPasswordRedirect = () => {
     router.push('/esquecisenha'); 
   };
@@ -141,7 +136,6 @@ const Login = () => {
         <button onClick={handleRegisterRedirect} className={styles.buttonSecondary}>
           Criar uma nova conta
         </button>
-        {/* Botão de redirecionamento para a recuperação de senha */}
         <button onClick={handleForgotPasswordRedirect} className={styles.buttonForgotPass}>
           Esqueci minha senha
         </button>
