@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
 
-:root{
+:root {
   --colorAmarelo: #f5b856;
   --colorAzul: #0070f3;
 }
@@ -9,10 +9,10 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: Arial, sans-serif;
+  font-family: 'Patrick Hand', cursive; 
 }
 
-.titleUser{
+.titleUser {
   font-size: 30px;
 }
 
@@ -23,7 +23,7 @@ html, body {
 }
 
 .header {
- background-color: var(--colorAmarelo);
+  background-color: var(--colorAmarelo);
   color: white;
   text-align: center;
   padding: 20px;
@@ -36,7 +36,6 @@ html, body {
 }
 
 .header-content {
-   font-family: 'Patrick Hand', cursive;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -106,6 +105,7 @@ main {
 .social-media svg {
   vertical-align: middle;
 }
-.headerLinks{
+
+.headerLinks {
   font-size: 25px !important;
 }

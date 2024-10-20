@@ -92,7 +92,7 @@
     border-color: #0070f3;
   }
   
-  .button {
+.button {
     padding: 12px;
     border: none;
     background-color: #0070f3;
@@ -103,7 +103,54 @@
     transition: background-color 0.3s;
   }
   
-  .button:hover {
+.button:hover {
     background-color: #005bb5;
+  }
+  .formGroupCalendar {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza o conteúdo horizontalmente */
+    gap: 20px;
+    margin-bottom: 20px;
+    width: 100%; /* Assegura que o container ocupe toda a largura */
+  }
+  
+  .formGroupCalendar input {
+    width: 50%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+  }
+  
+  .formGroupCalendar .calendarWrapper {
+    display: flex;
+    justify-content: center; /* Centraliza o calendário horizontalmente */
+    width: 100%;
+  }
+  
+  .formGroupCalendar .reactCalendar {
+    width: 100%;
+    max-width: 400px; /* Define uma largura máxima para o calendário */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: 'Arial', sans-serif;
+    padding: 10px;
+  }
+  
+  .formGroupCalendar select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fff;
+    cursor: pointer;
+  }
+  
+  .formGroupCalendar select:focus {
+    border-color: #007bff;
+    outline: none;
   }
   

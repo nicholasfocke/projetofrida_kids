@@ -54,10 +54,10 @@ const Layout = ({ children }: LayoutProps) => {
           <Image
             src="/images/logo.png" 
             alt="Logo Frida Kids"
-            width={100}
-            height={100}
+            width={130}
+            height={130}
           />
-          <p>{`Olá, ${greeting} ${userName || 'Visitante'}!`}</p>
+          <p className={styles.greetingsTitle}> {`Olá, ${greeting} ${userName || 'Visitante'}!`}</p>
 
           {/* Ícone de menu para versões mobile */}
           <div className={styles.menuIcon} onClick={toggleMenu}>
@@ -72,6 +72,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
             <a className={styles.headerLinks} href="/">Agendamento</a>
             <a className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</a>
+            <a className={styles.headerLinks} href="/">Meu Perfil</a>
           </nav>
           
         </div>
