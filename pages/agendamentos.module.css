@@ -1,22 +1,26 @@
+/* agendamentos.module.css */
+
 .container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   padding-top: 60px;
 }
-
-.title {
-  text-align: center;
-  margin-bottom: 20px;
+.titlecontaineragendamento{
+  margin-left: 280px;
 }
 
-.agendamentosList {
+.cardsContainer {
   list-style: none;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  justify-items: center;
 }
 
-.agendamentoItem {
-  background-color: #d1476e; /* Cinza suave */
+.card {
+  background-color: #d1476e; /* Rosa suave */
   margin-bottom: 15px;
   padding: 15px;
   border-radius: 8px;
@@ -24,9 +28,10 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  color: white;
 }
 
-.agendamentoItem p {
+.card p {
   margin: 5px 0;
 }
 
@@ -37,34 +42,16 @@
 }
 
 .editButton,
-.deleteButton,
+.removeButton,
 .saveButton,
 .cancelButton {
-  margin-right: 10px;
   padding: 8px 12px;
   border: none;
   cursor: pointer;
   border-radius: 4px;
-}
-
-.editButton {
-  background-color: #007bff;
   color: white;
-}
-
-.deleteButton {
-  background-color: red;
-  color: white;
-}
-
-.saveButton {
-  background-color: #28a745;
-  color: white;
-}
-
-.cancelButton {
-  background-color: #6c757d;
-  color: white;
+  background-color: #0070f3;
+  width: 150px;
 }
 
 .editForm {
@@ -72,6 +59,24 @@
   flex-direction: column;
 }
 
-.editForm label {
+.editForm select,
+.editForm input {
   margin-top: 10px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.editForm button {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editForm button:hover {
+  background-color: #218838;
 }

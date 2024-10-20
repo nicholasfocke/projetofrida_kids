@@ -54,8 +54,8 @@ const Layout = ({ children }: LayoutProps) => {
           <Image
             src="/images/logo.png" 
             alt="Logo Frida Kids"
-            width={130}
-            height={130}
+            width={150}
+            height={150}
           />
           <p className={styles.greetingsTitle}> {`Olá, ${greeting} ${userName || 'Visitante'}!`}</p>
 

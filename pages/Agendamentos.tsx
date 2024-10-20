@@ -145,7 +145,7 @@ const Agendamentos = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Meus Agendamentos</h1>
+      <h1 className={styles.titlecontaineragendamento}>Meus Agendamentos</h1>
       {agendamentos.length === 0 ? (
         <p>Não há agendamentos.</p>
       ) : (
