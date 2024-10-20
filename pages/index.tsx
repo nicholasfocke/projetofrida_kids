@@ -6,7 +6,7 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore'; 
 import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração do Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import styles from './index.module.css'; // Importando o CSS module
-import { isPast, isSunday, format } from 'date-fns'; // Biblioteca de manipulação de datas
+import { isPast, format, getYear } from 'date-fns'; // Biblioteca de manipulação de datas
 import { ptBR } from 'date-fns/locale'; // Localização para datas
 
 const Index = () => {
@@ -44,14 +44,18 @@ const Index = () => {
 
   // Função para verificar se a data é válida (não pode ser domingo, segunda ou passada)
   const isDateValid = (date: Date) => {
+    const today = new Date();
     const isMonday = date.getDay() === 1; // Segunda-feira
     const isSunday = date.getDay() === 0; // Domingo
-    return !isPast(date) && !isMonday && !isSunday;
+    const isPastDate = isPast(date); // Datas passadas
+    const isNotCurrentYear = getYear(date) !== getYear(today); // Bloquear anos diferentes do atual
+
+    return !isPastDate && !isMonday && !isSunday && !isNotCurrentYear;
   };
 
   const handleDateChange = (date: Date) => {
     if (!isDateValid(date)) {
-      setError('Você não pode agendar para datas passadas, domingos ou segundas.');
+      setError('Você não pode agendar para datas passadas, domingos, segundas ou anos fora do atual.');
       setSelectedDate(null); // Limpar a data se for inválida
       return;
     }
@@ -80,13 +84,6 @@ const Index = () => {
       return;
     }
 
-    // Verificar se a data é válida novamente antes de enviar
-    const selectedDate = new Date(appointmentData.date);
-    if (!isDateValid(selectedDate)) {
-      setError('Você não pode agendar para datas passadas, domingos ou segundas.');
-      return;
-    }
-
     // Verificar se já existe um agendamento para essa data e hora
     const q = query(
       collection(firestore, 'agendamentos'),
@@ -97,7 +94,14 @@ const Index = () => {
 
     if (!querySnapshot.empty) {
       // Se já existir um agendamento para esse horário
-      setError('Este horário já está reservado por outro cliente.');
+      setError('Esse horário já foi agendado para outro cliente.');
+      return;
+    }
+
+    // Verificar se a data é válida após a verificação do horário
+    const selectedDate = new Date(appointmentData.date);
+    if (!isDateValid(selectedDate)) {
+      setError('Você não pode agendar para datas passadas, domingos, segundas ou anos fora do atual.');
       return;
     }
 
@@ -183,6 +187,12 @@ const Index = () => {
               <Calendar
                 onChange={handleDateChange}
                 value={selectedDate}
+                tileDisabled={({ date }) => !isDateValid(date)} // Desabilitar datas inválidas no calendário
+                maxDetail="month" // Impede a navegação para o ano, deixando apenas a navegação entre meses
+                minDetail="month" // Limita para visualização apenas de meses, sem navegação de ano
+                navigationLabel={({ date, label, locale, view }) => `${format(date, 'MMMM yyyy', { locale: ptBR })}`} // Personaliza o rótulo de navegação para remover setas duplas
+                prev2Label={null} // Remove seta dupla anterior
+                next2Label={null} // Remove seta dupla próxima
               />
               {selectedDate && (
                 <select

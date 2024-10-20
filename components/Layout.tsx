@@ -66,15 +66,16 @@ const Layout = ({ children }: LayoutProps) => {
 
           {/* Navegação (ocultada em telas pequenas) */}
           <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
+            {/* Links do menu */}
+            <a className={styles.headerLinks} href="/">Agendamento</a>
+            <a className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</a>
+            <a className={styles.headerLinks} href="/">Meu Perfil</a>
+
             {/* Ícone de X para fechar o menu */}
             <div className={styles.closeMenuIcon} onClick={toggleMenu}>
               <FaTimes size={24} />
             </div>
-            <a className={styles.headerLinks} href="/">Agendamento</a>
-            <a className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</a>
-            <a className={styles.headerLinks} href="/">Meu Perfil</a>
           </nav>
-          
         </div>
       </header>
 

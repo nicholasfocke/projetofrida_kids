@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'; // Firestore
 import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração do Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
-import ProtectedRoute from '../components/ProtectedRoute'; // Proteção de rota
+import { useRouter } from 'next/router'; // Para redirecionamento
 import styles from './agendamentos.module.css'; // Estilos personalizados
 import { format, isAfter, addMinutes, parseISO } from 'date-fns'; // Manipulação de datas
 import { ptBR } from 'date-fns/locale'; // Locale para português
@@ -25,15 +25,26 @@ const Agendamentos = () => {
   const services = ['Corte de cabelo', 'Franja', 'Penteado']; // Serviços disponíveis
   const times = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
 
+  const router = useRouter(); // Hook para redirecionamento
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
+      } else {
+        router.push('/login'); // Redireciona para login se o usuário não estiver autenticado
+      }
+    });
 
-        // Buscar agendamentos do usuário logado no Firestore
+    return () => unsubscribe(); // Limpa o observador quando o componente desmonta
+  }, [router]);
+
+  useEffect(() => {
+    const fetchAgendamentos = async () => {
+      if (user) {
         const q = query(
           collection(firestore, 'agendamentos'),
-          where('usuarioId', '==', currentUser.uid),
+          where('usuarioId', '==', user.uid),
           where('status', '==', 'agendado')
         );
 
@@ -57,10 +68,10 @@ const Agendamentos = () => {
           setError('Erro ao buscar agendamentos.');
         }
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, []);
+    fetchAgendamentos();
+  }, [user]);
 
   // Função para verificar se o agendamento passou 30 minutos e atualizá-lo para "concluído"
   useEffect(() => {
@@ -133,97 +144,96 @@ const Agendamentos = () => {
   }
 
   return (
-    <ProtectedRoute>
-      <div className={styles.container}>
-        <h1>Meus Agendamentos</h1>
-        {agendamentos.length === 0 ? (
-          <p>Não há agendamentos.</p>
-        ) : (
-          <div className={styles.cardsContainer}>
-            {agendamentos.map((agendamento) => (
-              <div key={agendamento.id} className={styles.card}>
-                {editingAgendamento && editingAgendamento.id === agendamento.id ? (
-                  // Formulário de edição
-                  <div className={styles.editForm}>
-                    <h2>Editar Agendamento</h2>
-                    <select
-                      value={editingAgendamento.servico}
-                      onChange={(e) =>
-                        setEditingAgendamento({ ...editingAgendamento, servico: e.target.value })
-                      }
-                    >
-                      <option value="" disabled>Selecione um serviço</option>
-                      {services.map((service) => (
-                        <option key={service} value={service}>
-                          {service}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="date"
-                      value={editingAgendamento.data}
-                      onChange={(e) =>
-                        setEditingAgendamento({ ...editingAgendamento, data: e.target.value })
-                      }
-                    />
-                    <select
-                      value={editingAgendamento.hora}
-                      onChange={(e) =>
-                        setEditingAgendamento({ ...editingAgendamento, hora: e.target.value })
-                      }
-                    >
-                      <option value="" disabled>Selecione um horário</option>
-                      {times.map((time) => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      value={editingAgendamento.nomeCrianca}
-                      onChange={(e) =>
-                        setEditingAgendamento({
-                          ...editingAgendamento,
-                          nomeCrianca: e.target.value,
-                        })
-                      }
-                    />
-                    <button onClick={handleSaveEdit}>Salvar</button>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
-                  </div>
-                ) : (
-                  // Exibição do agendamento
-                  <>
-                    <h2>{agendamento.servico}</h2>
-                    <p>Criança: {agendamento.nomeCrianca}</p>
-                    <p>Data: {format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR })}</p>
-                    <p>Hora: {agendamento.hora}</p>
-                    <p>Status: {agendamento.status}</p>
+    <div className={styles.container}>
+      <h1>Meus Agendamentos</h1>
+      {agendamentos.length === 0 ? (
+        <p>Não há agendamentos.</p>
+      ) : (
+        <div className={styles.cardsContainer}>
+          {agendamentos.map((agendamento) => (
+            <div key={agendamento.id} className={styles.card}>
+              {editingAgendamento && editingAgendamento.id === agendamento.id ? (
+                // Formulário de edição
+                <div className={styles.editForm}>
+                  <h2>Editar Agendamento</h2>
+                  <select
+                    value={editingAgendamento.servico}
+                    onChange={(e) =>
+                      setEditingAgendamento({ ...editingAgendamento, servico: e.target.value })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione um serviço
+                    </option>
+                    {services.map((service) => (
+                      <option key={service} value={service}>
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="date"
+                    value={editingAgendamento.data}
+                    onChange={(e) =>
+                      setEditingAgendamento({ ...editingAgendamento, data: e.target.value })
+                    }
+                  />
+                  <select
+                    value={editingAgendamento.hora}
+                    onChange={(e) =>
+                      setEditingAgendamento({ ...editingAgendamento, hora: e.target.value })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione um horário
+                    </option>
+                    {times.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={editingAgendamento.nomeCrianca}
+                    onChange={(e) =>
+                      setEditingAgendamento({
+                        ...editingAgendamento,
+                        nomeCrianca: e.target.value,
+                      })
+                    }
+                  />
+                  <button onClick={handleSaveEdit}>Salvar</button>
+                  {error && <p style={{ color: 'red' }}>{error}</p>}
+                </div>
+              ) : (
+                // Exibição do agendamento
+                <>
+                  <h2>{agendamento.servico}</h2>
+                  <p>Criança: {agendamento.nomeCrianca}</p>
+                  <p>Data: {format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR })}</p>
+                  <p>Hora: {agendamento.hora}</p>
+                  <p>Status: {agendamento.status}</p>
 
-                    <div className={styles.cardActions}>
-                      <button
-                        className={styles.editButton}
-                        onClick={() => handleEdit(agendamento)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className={styles.removeButton}
-                        onClick={() => handleRemove(agendamento.id)}
-                        style={{ backgroundColor: 'red', color: 'white' }}
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </ProtectedRoute>
+                  <div className={styles.cardActions}>
+                    <button className={styles.editButton} onClick={() => handleEdit(agendamento)}>
+                      Editar
+                    </button>
+                    <button
+                      className={styles.removeButton}
+                      onClick={() => handleRemove(agendamento.id)}
+                      style={{ backgroundColor: 'red', color: 'white' }}
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

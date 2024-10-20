@@ -1,136 +1,129 @@
-/* Layout.module.css */
-
 .layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-  
-  .header {
-    background-color:#f5b856;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%; /* Garante que o header ocupe 100% da largura */
-    position: fixed; /* Fixa o header no topo */
-    top: 0;
-    left: 0;
-    z-index: 1000; /* Coloca o header acima de outros elementos */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
-    box-sizing: border-box; /* Inclui padding na largura total */
-  }
-  
-  .headerContent {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%; /* Faz o conteúdo do header se ajustar */
-    max-width: 1200px; /* Limita a largura máxima do conteúdo */
-    margin: 0 auto; /* Centraliza o conteúdo do header */
-  }
-  
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header {
+  background-color: #f5b856;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.greetingsTitle {
+  margin-left: 20px;
+  font-size: 1.2em;
+  color: #333; /* Cor do texto */
+}
+
+/* Estilos da navegação */
+.nav {
+  display: flex;
+  gap: 20px;
+}
+
+.headerLinks {
+  font-size: 1.2em;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333; /* Cor das letras */
+  font-weight: bold;
+}
+
+/* Ícone de menu (hambúrguer) */
+.menuIcon {
+  display: none;
+  cursor: pointer;
+  color: #333;
+}
+
+/* Ícone de fechar o menu no modo mobile */
+.closeMenuIcon {
+  display: none;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #333;
+}
+
+/* Estilos da navegação quando o menu está aberto em telas pequenas */
+.navOpen {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100%;
+  background-color:#f5b856; 
+  z-index: 1000;
+  padding-top: 50px;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Estilos para telas menores (até 768px) */
+@media (max-width: 768px) {
+  /* Esconder a navegação em telas menores */
   .nav {
-    display: flex;
-    gap: 20px;
+    display: none;
   }
-  
-  .headerLinks {
-    text-decoration: none;
-    color: #333;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  
+
+  /* Exibir o ícone de menu (hambúrguer) */
   .menuIcon {
-    display: none;
-    cursor: pointer;
+    display: block;
   }
-  
+
+  /* Exibir a navegação quando o menu estiver aberto */
   .navOpen {
-    display: flex !important;
-  }
-  
-  /* Ícone de fechar menu dentro do nav */
-  .closeMenuIcon {
-    display: none;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    cursor: pointer;
-  }
-  
-  /* Responsividade para telas pequenas */
-  @media (max-width: 768px) {
-    .nav {
-      display: none;
-      flex-direction: column;
-      position: absolute;
-      top: 60px;
-      right: 0;
-      background-color: #f5b856;
-      width: 100%;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-  
-    .menuIcon {
-      display: block; /* Mostra o ícone do menu em telas pequenas */
-    }
-  
-    .navOpen .closeMenuIcon {
-      display: block; /* Exibe o ícone de fechar quando o menu está aberto */
-    }
-  
-    .headerLinks {
-      margin-bottom: 10px;
-      font-size: 24px;
-      text-align: center;
-    }
-  }
-  
-  /* Corrigindo o conteúdo que fica escondido atrás do header fixo */
-  .mainContent {
-    padding-top: 100px; /* Ajuste conforme a altura do header (altura do header fixo é 80px + padding adicional) */
-    width: 100%; /* Garante que o conteúdo ocupe 100% da largura */
-    box-sizing: border-box; /* Inclui padding e bordas na largura total */
-    max-width: 1200px; /* Define uma largura máxima para o conteúdo principal */
-    margin: 0 auto; /* Centraliza o conteúdo da página */
-  }
-  
-  .footer {
-    background-color: #323b45;
-    padding: 20px;
-    margin-top: auto;
-    text-align: center;
-    width: 100%; /* Garante que o footer ocupe 100% da largura */
-    box-sizing: border-box;
-    color: #fff;
-  }
-  
-  .footerContent {
     display: flex;
-    flex-direction: column;
-    align-items: center;
   }
-  
-  .contactInfo {
-    margin-bottom: 20px;
+
+  /* Exibir o ícone de fechar menu quando o menu estiver aberto */
+  .navOpen .closeMenuIcon {
+    display: block;
   }
-  
-  .contactButton a {
-    text-decoration: none;
-    color: #fff;
-    background-color: #007bff;
-    padding: 10px 20px;
-    border-radius: 5px;
-  }
-  
-  .socialMedia a {
-    text-decoration: none;
-    color: #333;
-  }
-  .greetingsTitle{
-    font-size: 30px;
-    margin-left: 230px;
-  }
+}
+
+/* Estilos do footer */
+.footer {
+  background-color:#f5b856; 
+  padding: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.footerContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contactInfo {
+  margin-bottom: 10px;
+}
+
+.contactButton a {
+  color: white;
+  background-color: #0070f3;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.socialMedia {
+  margin-top: 10px;
+}
+
+.socialMedia a {
+  color: white;
+}
