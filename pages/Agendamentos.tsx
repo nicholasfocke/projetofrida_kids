@@ -75,26 +75,34 @@ const Agendamentos = () => {
 
   // Função para verificar se o agendamento passou 30 minutos e atualizá-lo para "concluído"
   useEffect(() => {
-    const intervalId = setInterval(() => {
+    const checkAgendamentos = async () => {
       const now = new Date();
       agendamentos.forEach(async (agendamento) => {
-        const agendamentoDateTime = new Date(`${agendamento.data} ${agendamento.hora}`);
+        const agendamentoDateTime = new Date(`${agendamento.data}T${agendamento.hora}`);
         const thirtyMinutesLater = addMinutes(agendamentoDateTime, 30);
 
         if (isAfter(now, thirtyMinutesLater) && agendamento.status === 'agendado') {
-          // Atualizar status para 'concluído' no Firestore
-          const agendamentoRef = doc(firestore, 'agendamentos', agendamento.id);
-          await updateDoc(agendamentoRef, {
-            status: 'concluído',
-          });
+          try {
+            // Atualizar status para 'concluído' no Firestore
+            const agendamentoRef = doc(firestore, 'agendamentos', agendamento.id);
+            await updateDoc(agendamentoRef, {
+              status: 'concluído',
+            });
 
-          // Remover o agendamento da lista de agendamentos no frontend
-          setAgendamentos((prev) => prev.filter((item) => item.id !== agendamento.id));
+            // Atualizar o estado local, removendo o agendamento concluído
+            setAgendamentos((prev) => prev.filter((item) => item.id !== agendamento.id));
+          } catch (error) {
+            console.error('Erro ao atualizar o status do agendamento: ', error);
+          }
         }
       });
-    }, 60000); // Verifica a cada 1 minuto
+    };
 
-    return () => clearInterval(intervalId); // Limpar o intervalo ao desmontar o componente
+    if (agendamentos.length > 0) {
+      const intervalId = setInterval(checkAgendamentos, 60000); // Verifica a cada 1 minuto
+
+      return () => clearInterval(intervalId); // Limpar o intervalo ao desmontar o componente
+    }
   }, [agendamentos]);
 
   // Função para remover o agendamento

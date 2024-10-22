@@ -69,7 +69,7 @@ const Layout = ({ children }: LayoutProps) => {
             {/* Links do menu */}
             <a className={styles.headerLinks} href="/">Agendamento</a>
             <a className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</a>
-            <a className={styles.headerLinks} href="/">Meu Perfil</a>
+            <a className={styles.headerLinks} href="/profile">Meu Perfil</a>
 
             {/* Ícone de X para fechar o menu */}
             <div className={styles.closeMenuIcon} onClick={toggleMenu}>

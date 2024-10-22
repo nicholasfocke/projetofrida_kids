@@ -6,7 +6,7 @@ import { collection, query, where, getDocs, addDoc } from 'firebase/firestore'; 
 import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração do Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import styles from './index.module.css'; // Importando o CSS module
-import { isPast, format, getYear } from 'date-fns'; // Biblioteca de manipulação de datas
+import { format, getYear } from 'date-fns'; // Biblioteca de manipulação de datas
 import { ptBR } from 'date-fns/locale'; // Localização para datas
 
 const Index = () => {
@@ -42,15 +42,15 @@ const Index = () => {
     });
   };
 
-  // Função para verificar se a data é válida (não pode ser domingo, segunda ou passada)
+  // Função para verificar se a data é válida (não pode ser domingo, segunda ou anterior ao dia atual)
   const isDateValid = (date: Date) => {
     const today = new Date();
     const isMonday = date.getDay() === 1; // Segunda-feira
     const isSunday = date.getDay() === 0; // Domingo
-    const isPastDate = isPast(date); // Datas passadas
+    const isPastDay = format(date, 'yyyy-MM-dd') < format(today, 'yyyy-MM-dd'); // Bloqueia dias anteriores ao dia atual
     const isNotCurrentYear = getYear(date) !== getYear(today); // Bloquear anos diferentes do atual
 
-    return !isPastDate && !isMonday && !isSunday && !isNotCurrentYear;
+    return !isPastDay && !isMonday && !isSunday && !isNotCurrentYear;
   };
 
   const handleDateChange = (date: Date) => {
@@ -98,13 +98,6 @@ const Index = () => {
       return;
     }
 
-    // Verificar se a data é válida após a verificação do horário
-    const selectedDate = new Date(appointmentData.date);
-    if (!isDateValid(selectedDate)) {
-      setError('Você não pode agendar para datas passadas, domingos, segundas ou anos fora do atual.');
-      return;
-    }
-
     try {
       // Criar o agendamento no Firestore
       await addDoc(collection(firestore, 'agendamentos'), {
@@ -138,7 +131,7 @@ const Index = () => {
   // Lógica para desabilitar horários anteriores ao horário atual, se o usuário estiver agendando para o dia atual
   const getAvailableTimesForDay = (date: Date) => {
     const now = new Date();
-    if (date.toDateString() === now.toDateString()) {
+    if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
       return times.filter((time) => {
         const [hours, minutes] = time.split(':');
         const appointmentTime = new Date();
