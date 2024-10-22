@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
 import styles from './Layout.module.css';
+import Link from 'next/link';
 
 type LayoutProps = {
   children: ReactNode;
@@ -67,9 +68,9 @@ const Layout = ({ children }: LayoutProps) => {
           {/* Navegação (ocultada em telas pequenas) */}
           <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
             {/* Links do menu */}
-            <a className={styles.headerLinks} href="/">Agendamento</a>
-            <a className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</a>
-            <a className={styles.headerLinks} href="/profile">Meu Perfil</a>
+            <Link className={styles.headerLinks} href="/">Agendamento</Link>
+            <Link className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</Link>
+            <Link className={styles.headerLinks} href="/profile">Meu Perfil</Link>
 
             {/* Ícone de X para fechar o menu */}
             <div className={styles.closeMenuIcon} onClick={toggleMenu}>
