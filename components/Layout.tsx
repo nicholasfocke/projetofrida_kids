@@ -1,12 +1,13 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { FaInstagram, FaBars, FaTimes } from 'react-icons/fa'; 
+import { FaInstagram, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa'; 
 import { auth, firestore } from '../firebase/firebaseConfig';
+import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
 import styles from './Layout.module.css';
 import Link from 'next/link';
-import { useRouter } from 'next/router'; // Importar useRouter para verificar a rota atual
+import { useRouter } from 'next/router'; 
 
 type LayoutProps = {
   children: ReactNode;
@@ -17,7 +18,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [greeting, setGreeting] = useState('');
   const [menuOpen, setMenuOpen] = useState(false); // Controla se o menu está aberto
   const [loading, setLoading] = useState(true); // Estado de carregamento
-  const router = useRouter(); // Hook para pegar a rota atual
+  const router = useRouter(); // Hook para redirecionamento
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -42,7 +43,7 @@ const Layout = ({ children }: LayoutProps) => {
       setLoading(false); // Desativa o carregamento quando o nome for recuperado
     });
 
-    // Definir saudação com base no horário atual
+    // Definir com base no horário atual
     const hours = new Date().getHours();
     if (hours >= 5 && hours < 12) {
       setGreeting('Bom dia');
@@ -63,7 +64,17 @@ const Layout = ({ children }: LayoutProps) => {
     setMenuOpen(!menuOpen);
   };
 
+  // Função de logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Firebase signOut
+      router.push('/login'); // Redireciona para a página de login após o logout
+    } catch (error) {
+      console.error('Erro ao fazer logout: ', error);
+    }
+  };
 
+  
   const noHeaderRoutes = ['/login', '/register', '/esquecisenha'];
 
   if (loading) {
@@ -99,11 +110,32 @@ const Layout = ({ children }: LayoutProps) => {
               <Link className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</Link>
               <Link className={styles.headerLinks} href="/profile">Meu Perfil</Link>
 
-              {/* Ícone de X para fechar o menu */}
-              <div className={styles.closeMenuIcon} onClick={toggleMenu}>
-                <FaTimes size={24} />
-              </div>
+              {/* Botão de logout dentro do menu se a pessoa estiver em celular */}
+              {menuOpen && (
+                <div className={styles.logoutContainer}>
+                  <button
+                    className={styles.logoutButton}
+                    onClick={handleLogout}
+                    style={{ backgroundColor: 'red', color: 'white' }}
+                  >
+                    <FaSignOutAlt size={18} style={{ marginRight: '8px' }} />
+                    Logout
+                  </button>
+                </div>
+              )}
             </nav>
+
+            {/* Ícone de logout fora do menu (para desktop) */}
+            {!menuOpen && (
+              <button
+                className={styles.logoutButton}
+                onClick={handleLogout}
+                style={{ backgroundColor: 'red', color: 'white', marginLeft: '15px' }}
+              >
+                <FaSignOutAlt size={18} style={{ marginRight: '8px' }} />
+                Logout
+              </button>
+            )}
           </div>
         </header>
       )}
