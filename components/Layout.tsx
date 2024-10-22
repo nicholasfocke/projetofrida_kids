@@ -1,11 +1,12 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { FaInstagram, FaBars, FaTimes } from 'react-icons/fa'; // Ícones para o menu e o "X"
+import { FaInstagram, FaBars, FaTimes } from 'react-icons/fa'; 
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import Image from 'next/image';
 import styles from './Layout.module.css';
 import Link from 'next/link';
+import { useRouter } from 'next/router'; // Importar useRouter para verificar a rota atual
 
 type LayoutProps = {
   children: ReactNode;
@@ -15,19 +16,30 @@ const Layout = ({ children }: LayoutProps) => {
   const [userName, setUserName] = useState('');
   const [greeting, setGreeting] = useState('');
   const [menuOpen, setMenuOpen] = useState(false); // Controla se o menu está aberto
+  const [loading, setLoading] = useState(true); // Estado de carregamento
+  const router = useRouter(); // Hook para pegar a rota atual
 
   useEffect(() => {
-    // Monitorar o estado de autenticação
+    const timeoutId = setTimeout(() => {
+      if (!userName) {
+        setUserName('Visitante'); // Define como "Visitante" após 10 segundos se o nome não for recuperado
+        setLoading(false);
+      }
+    }, 10000); // 10 segundos para exibir "Visitante"
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Pega o nome do usuário imediatamente após o login
         const userDoc = doc(firestore, 'users', user.uid);
         const docSnap = await getDoc(userDoc);
         if (docSnap.exists()) {
           const fullName = docSnap.data().nome || 'Usuário';
           const firstName = fullName.split(' ')[0];
-          setUserName(firstName);
+          setUserName(firstName); // Atualiza o nome do usuário
+          clearTimeout(timeoutId); // Cancela o timeout de 10 segundos
         }
       }
+      setLoading(false); // Desativa o carregamento quando o nome for recuperado
     });
 
     // Definir saudação com base no horário atual
@@ -40,45 +52,61 @@ const Layout = ({ children }: LayoutProps) => {
       setGreeting('Boa noite');
     }
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId); // Limpa o timeout quando o componente desmontar
+    };
+  }, [userName]);
 
   // Função para alternar a abertura e fechamento do menu
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
+
+  const noHeaderRoutes = ['/login', '/register', '/esquecisenha'];
+
+  if (loading) {
+    return <div>Carregando...</div>; // Exibe "Carregando..." enquanto espera o nome ou timeout
+  }
+
   return (
     <div className={styles.layout}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <Image
-            src="/images/logo.png" 
-            alt="Logo Frida Kids"
-            width={150}
-            height={150}
-          />
-          <p className={styles.greetingsTitle}> {`Olá, ${greeting} ${userName || 'Visitante'}!`}</p>
+      {/* Verificar se a rota atual está em noHeaderRoutes e, se não estiver, exibir o header */}
+      {!noHeaderRoutes.includes(router.pathname) && (
+        <header className={styles.header}>
+          <div className={styles.headerContent}>
+            <Image
+              src="/images/logo.png" 
+              alt="Logo Frida Kids"
+              width={150}
+              height={150}
+            />
+            {/* Mostrar saudação somente quando o nome do usuário estiver carregado */}
+            <p className={styles.greetingsTitle}>
+              {`Olá, ${greeting} ${userName}!`}
+            </p>
 
-          {/* Ícone de menu para versões mobile */}
-          <div className={styles.menuIcon} onClick={toggleMenu}>
-            {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-          </div>
-
-          {/* Navegação (ocultada em telas pequenas) */}
-          <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
-            {/* Links do menu */}
-            <Link className={styles.headerLinks} href="/">Agendamento</Link>
-            <Link className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</Link>
-            <Link className={styles.headerLinks} href="/profile">Meu Perfil</Link>
-
-            {/* Ícone de X para fechar o menu */}
-            <div className={styles.closeMenuIcon} onClick={toggleMenu}>
-              <FaTimes size={24} />
+            {/* Ícone de menu para versões mobile */}
+            <div className={styles.menuIcon} onClick={toggleMenu}>
+              {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </div>
-          </nav>
-        </div>
-      </header>
+
+            {/* Navegação (ocultada em telas pequenas) */}
+            <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
+              {/* Links do menu */}
+              <Link className={styles.headerLinks} href="/">Agendamento</Link>
+              <Link className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</Link>
+              <Link className={styles.headerLinks} href="/profile">Meu Perfil</Link>
+
+              {/* Ícone de X para fechar o menu */}
+              <div className={styles.closeMenuIcon} onClick={toggleMenu}>
+                <FaTimes size={24} />
+              </div>
+            </nav>
+          </div>
+        </header>
+      )}
 
       <main className="mainContent">{children}</main>
 
