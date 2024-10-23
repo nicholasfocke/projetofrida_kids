@@ -43,7 +43,7 @@ const Layout = ({ children }: LayoutProps) => {
       setLoading(false); // Desativa o carregamento quando o nome for recuperado
     });
 
-    // Definir com base no horário atual
+    // Definir saudação com base no horário atual
     const hours = new Date().getHours();
     if (hours >= 5 && hours < 12) {
       setGreeting('Bom dia');
@@ -101,6 +101,13 @@ const Layout = ({ children }: LayoutProps) => {
 
             {/* Navegação (ocultada em telas pequenas) */}
             <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
+              {/* Ícone de fechar menu para dispositivos móveis */}
+              {menuOpen && (
+                <div className={styles.closeMenuIcon} onClick={toggleMenu}>
+                  <FaTimes size={24} />
+                </div>
+              )}
+
               {/* Links do menu */}
               <Link className={styles.headerLinks} href="/">Agendamento</Link>
               <Link className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</Link>
@@ -121,16 +128,18 @@ const Layout = ({ children }: LayoutProps) => {
               )}
             </nav>
 
-            {/* Ícone de logout fora do menu (para desktop) */}
+            {/* Ícone de logout fora do menu (somente em telas maiores) */}
             {!menuOpen && (
-              <button
-                className={styles.logoutButton}
-                onClick={handleLogout}
-                style={{ backgroundColor: 'red', color: 'white', marginLeft: '15px' }}
-              >
-                <FaSignOutAlt size={18} style={{ marginRight: '8px' }} />
-                Logout
-              </button>
+              <div className={styles.logoutDesktop}>
+                <button
+                  className={styles.logoutButton}
+                  onClick={handleLogout}
+                  style={{ backgroundColor: 'red', color: 'white', marginLeft: '15px' }}
+                >
+                  <FaSignOutAlt size={18} style={{ marginRight: '8px' }} />
+                  Logout
+                </button>
+              </div>
             )}
           </div>
         </header>

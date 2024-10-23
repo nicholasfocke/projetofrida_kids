@@ -41,16 +41,6 @@
   color: #333;
 }
 
-/* Ícone de fechar o menu no modo mobile */
-.closeMenuIcon {
-  display: none;
-  cursor: pointer;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: #333;
-}
-
 /* Estilos da navegação quando o menu está aberto em telas pequenas */
 .navOpen {
   display: flex;
@@ -66,6 +56,11 @@
   transition: transform 0.3s ease-in-out;
 }
 
+/* Esconder logout no desktop em telas pequenas */
+.logoutDesktop {
+  display: flex;
+}
+
 /* Estilos para telas menores (até 768px) */
 @media (max-width: 768px) {
   /* Esconder a navegação em telas menores */
@@ -78,14 +73,24 @@
     display: block;
   }
 
+  /* Esconder o botão de logout no header para telas pequenas */
+  .logoutDesktop {
+    display: none;
+  }
+
   /* Exibir a navegação quando o menu estiver aberto */
   .navOpen {
     display: flex;
   }
 
   /* Exibir o ícone de fechar menu quando o menu estiver aberto */
-  .navOpen .closeMenuIcon {
+  .closeMenuIcon {
     display: block;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #333;
+    cursor: pointer;
   }
 }
 
