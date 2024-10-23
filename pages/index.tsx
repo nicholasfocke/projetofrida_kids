@@ -16,12 +16,34 @@ const Index = () => {
     time: '',
     service: '',
     childName: '',
+    funcionaria: '', 
   });
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [error, setError] = useState(''); // Para exibir erros de validação
   const times = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+
+  // Lógica para verificar horários disponíveis para a funcionária selecionada
+  useEffect(() => {
+    if (!selectedDate || !appointmentData.funcionaria) return;
+
+    const fetchAvailableTimes = async () => {
+      const appointmentsQuery = query(
+        collection(firestore, 'appointments'),
+        where('date', '==', format(selectedDate, 'yyyy-MM-dd')),
+        where('funcionaria', '==', appointmentData.funcionaria)
+      );
+
+      const appointmentDocs = await getDocs(appointmentsQuery);
+      const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().time);
+      const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
+
+      setAvailableTimes(filteredTimes);
+    };
+
+    fetchAvailableTimes();
+  }, [selectedDate, appointmentData.funcionaria]);
 
   useEffect(() => {
     // Verificar se o usuário está logado
@@ -36,10 +58,10 @@ const Index = () => {
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setAppointmentData({
-      ...appointmentData,
+    setAppointmentData((prevData) => ({
+      ...prevData,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   // Função para verificar se a data é válida (não pode ser domingo, segunda ou anterior ao dia atual)
@@ -84,17 +106,32 @@ const Index = () => {
       return;
     }
 
-    // Verificar se já existe um agendamento para essa data e hora
+    if (!appointmentData.funcionaria) {
+      setError('Você precisa escolher uma funcionária antes de enviar.');
+      return;
+    }
+
+    if (!appointmentData.date) {
+      setError('Você precisa escolher uma data antes de enviar.');
+      return;
+    }
+
+    if (!appointmentData.time) {
+      setError('Você precisa escolher um horário antes de enviar.');
+      return;
+    }
+
+    // Verificar se já existe um agendamento para essa data, hora e funcionária
     const q = query(
       collection(firestore, 'agendamentos'),
       where('data', '==', appointmentData.date),
-      where('hora', '==', appointmentData.time)
+      where('hora', '==', appointmentData.time),
+      where('funcionaria', '==', appointmentData.funcionaria) // Verificar se a funcionária já está ocupada
     );
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      // Se já existir um agendamento para esse horário
-      setError('Esse horário já foi agendado para outro cliente.');
+      setError(`Esse horário com a ${appointmentData.funcionaria} já foi agendado para outro cliente.`); // Melhorar a mensagem de erro
       return;
     }
 
@@ -108,6 +145,7 @@ const Index = () => {
         usuarioId: user?.uid, // UID do usuário logado
         usuarioEmail: user?.email, // Email do usuário logado (opcional)
         status: 'agendado', // Adicionando o status "agendado"
+        funcionaria: appointmentData.funcionaria, // Salvar a funcionária escolhida
       });
 
       alert('Agendamento realizado com sucesso!');
@@ -118,6 +156,7 @@ const Index = () => {
         time: '',
         service: '',
         childName: '',
+        funcionaria: '', // Reset funcionaria to empty
       });
       setSelectedDate(null);
       setAvailableTimes([]);
@@ -164,6 +203,20 @@ const Index = () => {
                 <option value="Corte de cabelo">Corte de cabelo</option>
                 <option value="Franja">Franja</option>
                 <option value="Penteado">Penteado</option>
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="funcionaria">Escolha a funcionária:</label>
+              <select
+                name="funcionaria"
+                value={appointmentData.funcionaria}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Selecione uma funcionária</option> {/* Para forçar a escolha */}
+                <option value="Frida">Frida</option>
+                <option value="Ana">Ana</option>
               </select>
             </div>
 

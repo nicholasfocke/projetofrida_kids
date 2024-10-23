@@ -14,6 +14,7 @@ interface Agendamento {
   servico: string;
   nomeCrianca: string;
   status: string;
+  funcionaria: string; 
 }
 
 const Agendamentos = () => {
@@ -60,6 +61,7 @@ const Agendamentos = () => {
               servico: agendamentoData.servico,
               nomeCrianca: agendamentoData.nomeCrianca,
               status: agendamentoData.status,
+              funcionaria: agendamentoData.funcionaria || '', 
             });
           });
           setAgendamentos(fetchedAgendamentos);
@@ -221,6 +223,7 @@ const Agendamentos = () => {
                   <p>Criança: {agendamento.nomeCrianca}</p>
                   <p>Data: {format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR })}</p>
                   <p>Hora: {agendamento.hora}</p>
+                  <p>Funcionária: {agendamento.funcionaria}</p> {/* Exibir o nome da funcionária */}
                   <p>Status: {agendamento.status}</p>
 
                   <div className={styles.cardActions}>

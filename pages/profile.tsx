@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import styles from './Profile.module.css'; 
+import styles from './Profile.module.css';
 
 const Profile = () => {
   const [userData, setUserData] = useState({
@@ -11,8 +11,14 @@ const Profile = () => {
     email: '',
     telefone: '',
   });
+  const [originalData, setOriginalData] = useState({
+    nome: '',
+    email: '',
+    telefone: '',
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isChanged, setIsChanged] = useState(false); // Estado para verificar se algo mudou
   const [error, setError] = useState('');
   const router = useRouter();
 
@@ -25,11 +31,13 @@ const Profile = () => {
         const docSnap = await getDoc(userDoc);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setUserData({
+          const initialData = {
             nome: data.nome || '',
             email: data.email || '',
             telefone: data.telefone || '',
-          });
+          };
+          setUserData(initialData);
+          setOriginalData(initialData); // Salva os dados originais para comparação
         }
         setIsLoading(false);
       } else {
@@ -40,6 +48,15 @@ const Profile = () => {
 
     return () => unsubscribe();
   }, [router]);
+
+  // Verificar se algum campo foi alterado
+  useEffect(() => {
+    const hasChanges = 
+      userData.nome !== originalData.nome ||
+      userData.email !== originalData.email ||
+      userData.telefone !== originalData.telefone;
+    setIsChanged(hasChanges); // Habilitar/desabilitar o botão com base em mudanças
+  }, [userData, originalData]);
 
   // Função para verificar se o email ou telefone já está cadastrado
   const checkIfEmailOrPhoneExists = async () => {
@@ -82,6 +99,8 @@ const Profile = () => {
           telefone: userData.telefone,
         });
         alert('Dados atualizados com sucesso!');
+        setOriginalData(userData); // Atualizar os dados originais com os novos
+        setIsChanged(false); // Desabilitar o botão novamente
       }
     } catch (error) {
       console.error('Erro ao atualizar dados: ', error);
@@ -130,7 +149,7 @@ const Profile = () => {
             required
           />
         </div>
-        <button type="submit" className={styles.submitButton} disabled={isUpdating}>
+        <button type="submit" className={styles.submitButton} disabled={!isChanged || isUpdating}>
           {isUpdating ? 'Atualizando...' : 'Atualizar Dados'}
         </button>
       </form>

@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect, useRef } from 'react';
 import { FaInstagram, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa'; 
 import { auth } from '../firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
@@ -14,6 +14,7 @@ type LayoutProps = {
 const Layout = ({ children }: LayoutProps) => {
   const [menuOpen, setMenuOpen] = useState(false); // Controla se o menu está aberto
   const router = useRouter(); // Hook para redirecionamento
+  const menuRef = useRef<HTMLDivElement>(null); // Referência para o menu
 
   // Função para alternar a abertura e fechamento do menu
   const toggleMenu = () => {
@@ -29,6 +30,29 @@ const Layout = ({ children }: LayoutProps) => {
       console.error('Erro ao fazer logout: ', error);
     }
   };
+
+  const closeMenu = () => {
+    setMenuOpen(false); // Função para fechar o menu
+  };
+
+  // Fechar o menu ao clicar fora dele
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        closeMenu(); // Fechar o menu se clicar fora dele
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Fechar o menu ao navegar para outra página
+  useEffect(() => {
+    closeMenu();
+  }, [router.pathname]);
 
   const noHeaderRoutes = ['/login', '/register', '/esquecisenha'];
 
@@ -51,7 +75,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
 
             {/* Navegação (ocultada em telas pequenas) */}
-            <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`}>
+            <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`} ref={menuRef}>
               {/* Ícone de fechar menu para dispositivos móveis */}
               {menuOpen && (
                 <div className={styles.closeMenuIcon} onClick={toggleMenu}>
@@ -60,16 +84,19 @@ const Layout = ({ children }: LayoutProps) => {
               )}
 
               {/* Links do menu */}
-              <Link className={styles.headerLinks} href="/">Agendamento</Link>
-              <Link className={styles.headerLinks} href="/Agendamentos">Meus Agendamentos</Link>
-              <Link className={styles.headerLinks} href="/profile">Meu Perfil</Link>
+              <Link className={styles.headerLinks} href="/" onClick={closeMenu}>Agendamento</Link>
+              <Link className={styles.headerLinks} href="/Agendamentos" onClick={closeMenu}>Meus Agendamentos</Link>
+              <Link className={styles.headerLinks} href="/profile" onClick={closeMenu}>Meu Perfil</Link>
 
               {/* Botão de logout dentro do menu se a pessoa estiver em celular */}
               {menuOpen && (
                 <div className={styles.logoutContainer}>
                   <button
                     className={styles.logoutButton}
-                    onClick={handleLogout}
+                    onClick={() => {
+                      handleLogout();
+                      closeMenu();
+                    }}
                     style={{ backgroundColor: 'red', color: 'white' }}
                   >
                     <FaSignOutAlt size={18} style={{ marginRight: '8px' }} />
