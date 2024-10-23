@@ -1,80 +1,107 @@
 .container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow: hidden; /* Impede qualquer conteúdo de ultrapassar o limite do container */
+}
+
+.title {
+  font-size: 1.8em;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+  width: 100%; /* Garante que o grupo de formulário ocupe 100% da largura do card */
+}
+
+.formGroup label {
+  font-size: 1em;
+  color: #333;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.formGroup input {
+  width: calc(100% - 20px); /* Ajusta a largura dos inputs para que fiquem menores que o container */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.submitButton {
+  width: calc(100% - 20px); /* Faz o botão seguir o mesmo padrão dos inputs */
+  padding: 10px;
+  background-color: #0070f3;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.submitButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
   }
-  
+
   .title {
-    font-size: 1.8em;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
+    font-size: 1.5em;
   }
-  
-  .error {
-    color: red;
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  
-  .form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .formGroup {
-    margin-bottom: 15px;
-  }
-  
-  .formGroup label {
-    font-size: 1em;
-    color: #333;
-    margin-bottom: 5px;
-    display: block;
-  }
-  
+
   .formGroup input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    width: calc(100% - 16px); /* Ajuste para telas menores */
+    padding: 8px;
   }
-  
+
   .submitButton {
+    font-size: 1em;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
     padding: 10px;
-    background-color: #0070f3;
-    border: none;
-    border-radius: 4px;
-    color: #333;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
   }
-  
-  .submitButton:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+
+  .title {
+    font-size: 1.3em;
   }
-  
-  /* Responsividade */
-  @media (max-width: 768px) {
-    .container {
-      padding: 15px;
-    }
-  
-    .title {
-      font-size: 1.5em;
-    }
-  
-    .formGroup input {
-      padding: 8px;
-    }
-  
-    .submitButton {
-      font-size: 1em;
-      padding: 8px;
-    }
+
+  .formGroup input {
+    width: calc(100% - 12px); /* Ajuste adicional para telas muito pequenas */
+    padding: 7px;
   }
-  
+
+  .submitButton {
+    font-size: 0.9em;
+    padding: 7px;
+  }
+}

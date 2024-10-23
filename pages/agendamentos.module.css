@@ -4,10 +4,14 @@
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  padding-top: 60px;
+  padding-top: 5px;
+  text-align: center;
 }
-.titlecontaineragendamento{
-  margin-left: 280px;
+
+.titlecontaineragendamento {
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .cardsContainer {
@@ -15,12 +19,12 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 40px; /* Aumenta o espaço entre os cards */
   justify-items: center;
 }
 
 .card {
-  background-color: #d1476e; /* Rosa suave */
+  background-color: #d1476e;
   margin-bottom: 15px;
   padding: 15px;
   border-radius: 8px;
@@ -29,6 +33,10 @@
   flex-direction: column;
   justify-content: space-between;
   color: white;
+  width: calc(100% - 20px); /* Reduz um pouco a largura para dar espaço */
+  max-width: 600px; /* Define um limite máximo para evitar que o card fique muito grande */
+  margin-left: 10px; /* Adiciona margem para evitar que os cards fiquem muito próximos */
+  margin-right: 10px; /* Adiciona margem lateral também */
 }
 
 .card p {
@@ -52,11 +60,18 @@
   color: white;
   background-color: #0070f3;
   width: 150px;
+  transition: background-color 0.3s ease;
+}
+
+.editButton:hover,
+.removeButton:hover {
+  background-color: #339af0;
 }
 
 .editForm {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .editForm select,
@@ -79,4 +94,20 @@
 
 .editForm button:hover {
   background-color: #218838;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .titlecontaineragendamento {
+    font-size: 1.8em;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+
+  .editButton,
+  .removeButton {
+    width: 120px;
+  }
 }

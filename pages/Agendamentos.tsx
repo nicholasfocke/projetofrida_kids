@@ -4,7 +4,7 @@ import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração 
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import { useRouter } from 'next/router'; // Para redirecionamento
 import styles from './agendamentos.module.css'; // Estilos personalizados
-import { format, isAfter, addMinutes, parseISO } from 'date-fns'; // Manipulação de datas
+import { format, isAfter, isBefore, isSameDay, addMinutes, parseISO } from 'date-fns'; // Manipulação de datas
 import { ptBR } from 'date-fns/locale'; // Locale para português
 
 interface Agendamento {
@@ -75,7 +75,6 @@ const Agendamentos = () => {
     fetchAgendamentos();
   }, [user]);
 
-  // Função para verificar se o agendamento passou 30 minutos e atualizá-lo para "concluído"
   useEffect(() => {
     const checkAgendamentos = async () => {
       const now = new Date();
@@ -85,13 +84,11 @@ const Agendamentos = () => {
 
         if (isAfter(now, thirtyMinutesLater) && agendamento.status === 'agendado') {
           try {
-            // Atualizar status para 'concluído' no Firestore
             const agendamentoRef = doc(firestore, 'agendamentos', agendamento.id);
             await updateDoc(agendamentoRef, {
               status: 'concluído',
             });
 
-            // Atualizar o estado local, removendo o agendamento concluído
             setAgendamentos((prev) => prev.filter((item) => item.id !== agendamento.id));
           } catch (error) {
             console.error('Erro ao atualizar o status do agendamento: ', error);
@@ -101,13 +98,12 @@ const Agendamentos = () => {
     };
 
     if (agendamentos.length > 0) {
-      const intervalId = setInterval(checkAgendamentos, 60000); // Verifica a cada 1 minuto
+      const intervalId = setInterval(checkAgendamentos, 60000);
 
-      return () => clearInterval(intervalId); // Limpar o intervalo ao desmontar o componente
+      return () => clearInterval(intervalId);
     }
   }, [agendamentos]);
 
-  // Função para remover o agendamento
   const handleRemove = async (id: string) => {
     try {
       await deleteDoc(doc(firestore, 'agendamentos', id));
@@ -117,35 +113,75 @@ const Agendamentos = () => {
     }
   };
 
-  // Função para editar o agendamento
   const handleEdit = (agendamento: Agendamento) => {
-    setEditingAgendamento(agendamento); // Abrir o formulário de edição com o agendamento selecionado
+    setEditingAgendamento(agendamento);
   };
 
-  // Função para salvar as alterações no agendamento
   const handleSaveEdit = async () => {
-    if (editingAgendamento) {
-      try {
-        const agendamentoRef = doc(firestore, 'agendamentos', editingAgendamento.id);
-        await updateDoc(agendamentoRef, {
-          servico: editingAgendamento.servico,
-          data: editingAgendamento.data,
-          hora: editingAgendamento.hora,
-          nomeCrianca: editingAgendamento.nomeCrianca,
-        });
+    if (!editingAgendamento) return;
 
-        // Atualizar o estado local com as alterações
-        setAgendamentos((prev) =>
-          prev.map((agendamento) =>
-            agendamento.id === editingAgendamento.id ? editingAgendamento : agendamento
-          )
-        );
+    const now = new Date();
+    const selectedDate = new Date(editingAgendamento.data);
+    const dayOfWeek = selectedDate.getDay(); // 6 = Domingo, 0 = Segunda
 
-        setEditingAgendamento(null); // Fechar o formulário de edição
-        setError('');
-      } catch (error) {
-        console.error('Erro ao salvar alterações: ', error);
-      }
+    const isSundayOrMonday = dayOfWeek === 0 || dayOfWeek === 6;
+    const isPastDate = isBefore(selectedDate.setHours(0, 0, 0, 0), now.setHours(0, 0, 0, 0)) && !isSameDay(selectedDate, now);
+    const isPastTimeToday = isSameDay(selectedDate, now) && isBefore(new Date(`${editingAgendamento.data}T${editingAgendamento.hora}`), now);
+
+    const isTimeBookedForFuncionaria = agendamentos.some(
+      (a) =>
+        a.hora === editingAgendamento.hora &&
+        a.data === editingAgendamento.data &&
+        a.funcionaria === editingAgendamento.funcionaria &&
+        a.id !== editingAgendamento.id
+    );
+
+    if (isSundayOrMonday) {
+      setError('O salão está fechado aos domingos e segundas-feiras.');
+      return;
+    }
+
+    if (isPastDate || isPastTimeToday) {
+      setError('Você não pode agendar em um horário ou data que já passou.');
+      return;
+    }
+
+    if (isTimeBookedForFuncionaria) {
+      setError(`Esse horário já está agendado para a ${editingAgendamento.funcionaria}.`);
+      return;
+    }
+
+    if (
+      !editingAgendamento.servico ||
+      !editingAgendamento.data ||
+      !editingAgendamento.hora ||
+      !editingAgendamento.nomeCrianca ||
+      !editingAgendamento.funcionaria
+    ) {
+      setError('Preencha todos os campos.');
+      return;
+    }
+
+    try {
+      const agendamentoRef = doc(firestore, 'agendamentos', editingAgendamento.id);
+      await updateDoc(agendamentoRef, {
+        servico: editingAgendamento.servico,
+        data: editingAgendamento.data,
+        hora: editingAgendamento.hora,
+        nomeCrianca: editingAgendamento.nomeCrianca,
+        funcionaria: editingAgendamento.funcionaria,
+      });
+
+      setAgendamentos((prev) =>
+        prev.map((agendamento) =>
+          agendamento.id === editingAgendamento.id ? editingAgendamento : agendamento
+        )
+      );
+
+      setEditingAgendamento(null);
+      setError('');
+    } catch (error) {
+      console.error('Erro ao salvar alterações: ', error);
     }
   };
 
@@ -163,7 +199,6 @@ const Agendamentos = () => {
           {agendamentos.map((agendamento) => (
             <div key={agendamento.id} className={styles.card}>
               {editingAgendamento && editingAgendamento.id === agendamento.id ? (
-                // Formulário de edição
                 <div className={styles.editForm}>
                   <h2>Editar Agendamento</h2>
                   <select
@@ -203,6 +238,21 @@ const Agendamentos = () => {
                       </option>
                     ))}
                   </select>
+                  <select
+                    value={editingAgendamento.funcionaria}
+                    onChange={(e) =>
+                      setEditingAgendamento({
+                        ...editingAgendamento,
+                        funcionaria: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione a Funcionária
+                    </option>
+                    <option value="Frida">Frida</option>
+                    <option value="Ana">Ana</option>
+                  </select>
                   <input
                     type="text"
                     value={editingAgendamento.nomeCrianca}
@@ -214,18 +264,16 @@ const Agendamentos = () => {
                     }
                   />
                   <button onClick={handleSaveEdit}>Salvar</button>
-                  {error && <p style={{ color: 'red' }}>{error}</p>}
+                  {error && <p style={{ color: 'white' }}>{error}</p>}
                 </div>
               ) : (
-                // Exibição do agendamento
                 <>
                   <h2>{agendamento.servico}</h2>
                   <p>Criança: {agendamento.nomeCrianca}</p>
                   <p>Data: {format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR })}</p>
                   <p>Hora: {agendamento.hora}</p>
-                  <p>Funcionária: {agendamento.funcionaria}</p> {/* Exibir o nome da funcionária */}
+                  <p>Funcionária: {agendamento.funcionaria}</p>
                   <p>Status: {agendamento.status}</p>
-
                   <div className={styles.cardActions}>
                     <button className={styles.editButton} onClick={() => handleEdit(agendamento)}>
                       Editar
