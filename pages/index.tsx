@@ -178,6 +178,7 @@ const Index = () => {
                 required
               />
               <Calendar
+                className={styles.reactCalendar}
                 onChange={handleDateChange}
                 value={selectedDate}
                 tileDisabled={({ date }) => !isDateValid(date)} // Desabilitar datas inválidas no calendário

@@ -93,10 +93,6 @@ const Layout = ({ children }: LayoutProps) => {
               width={150}
               height={150}
             />
-            {/* Mostrar saudação somente quando o nome do usuário estiver carregado */}
-            <p className={styles.greetingsTitle}>
-              {`Olá, ${greeting} ${userName}!`}
-            </p>
 
             {/* Ícone de menu para versões mobile */}
             <div className={styles.menuIcon} onClick={toggleMenu}>

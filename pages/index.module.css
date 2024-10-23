@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
 .container {
     display: flex;
     justify-content: center;
@@ -152,5 +154,69 @@
   .formGroupCalendar select:focus {
     border-color: #007bff;
     outline: none;
+  }
+  .reactCalendar {
+    width: 100% !important;
+    max-width: 100% !important;
+    background-color: #fff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    font-family: 'Patrick Hand', cursive !important;
+    padding: 10px !important;
+    margin-top: 10px !important;
+  }
+  
+  .react-calendar__navigation button {
+    color: #d1476e !important; /* Cor personalizada */
+    background: none !important;
+    font-size: 1.2rem !important;
+    margin: 5px !important;
+    padding: 5px !important;
+    cursor: pointer !important;
+  }
+  
+  .react-calendar__tile {
+    padding: 10px !important;
+    background-color: #f9f9f9 !important;
+    border-radius: 4px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+  }
+  
+  .react-calendar__tile:hover {
+    background-color: #d1476e !important;
+    color: white !important;
+  }
+  
+  .react-calendar__tile--active {
+    background-color: #007bff !important;
+    color: white !important;
+  }
+  
+  .react-calendar__tile--disabled {
+    background-color: #eee !important;
+    color: #ccc !important;
+    cursor: not-allowed !important;
+  }
+  
+  .react-calendar__month-view__weekdays {
+    font-weight: bold !important;
+    text-align: center !important;
+    padding: 5px 0 !important;
+    color: #666 !important;
+  }
+  
+  .react-calendar__navigation__label {
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
+    color: #d1476e !important;
+  }
+  
+  .react-calendar__navigation button:enabled:hover,
+  .react-calendar__navigation button:enabled:focus {
+    background-color: #007bff !important;
+    color: white !important;
+    border-radius: 4px !important;
   }
   
