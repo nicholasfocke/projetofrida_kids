@@ -206,8 +206,19 @@ const Index = () => {
               </select>
             </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="funcionaria">Escolha a funcionária:</label>
+            <div className={styles.formGroupCalendar}>
+              <input
+                type="text"
+                id="childName"
+                name="childName"
+                placeholder="Nome da Criança"
+                value={appointmentData.childName}
+                onChange={handleInputChange}
+                required
+              />
+
+              <div className={styles.formGroup}>
+              <label htmlFor="funcionaria"></label>
               <select
                 name="funcionaria"
                 value={appointmentData.funcionaria}
@@ -219,17 +230,7 @@ const Index = () => {
                 <option value="Ana">Ana</option>
               </select>
             </div>
-
-            <div className={styles.formGroupCalendar}>
-              <input
-                type="text"
-                id="childName"
-                name="childName"
-                placeholder="Nome da Criança"
-                value={appointmentData.childName}
-                onChange={handleInputChange}
-                required
-              />
+              
               <Calendar
                 className={styles.reactCalendar}
                 onChange={handleDateChange}

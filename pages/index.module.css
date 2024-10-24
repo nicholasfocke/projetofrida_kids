@@ -5,24 +5,24 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f0f2f5;
-    padding-bottom: 100px;
-    padding-top: 100px;
+    padding-bottom: 0px;
+    padding-top: 0px;
   }
   
   .formContainer {
-    background-color: white;
+    background-color: #f1f1f1f3;
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 500px;
     width: 100%;
+    border: 1px solid #ddd;
   }
   
   .title {
     text-align: center;
-    font-size: 24px;
-    color: #333;
+    font-size: 30px;
+    color: #000000;
     margin-bottom: 20px;
     font-family: Arial, Helvetica, sans-serif;
   }
@@ -38,7 +38,6 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
-    margin-left: 50px;
     width: 250px;
   }
   
@@ -53,7 +52,6 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
-    margin-left: 100px;
     margin-bottom: 20px;
     width: 260px;
   }
@@ -66,7 +64,7 @@
   
   .formGroup {
     margin-bottom: 20px;
-    margin-left: 70px;
+    margin: 0 auto;
   }
   
   .times {
@@ -218,5 +216,38 @@
     background-color: #007bff !important;
     color: white !important;
     border-radius: 4px !important;
+  }
+  @media (max-width: 768px) {
+    .formContainer {
+      padding: 20px;
+      max-width: 90%;
+    }
+  
+    .title {
+      font-size: 20px;
+    }
+  
+    .button {
+      font-size: 14px;
+      padding: 10px;
+    }
+  
+    .reactCalendar {
+      max-width: 100% !important;
+    }
+  
+    .formGroupCalendar input,
+    .formGroupCalendar select {
+      max-width: 100%;
+    }
+  
+    .react-calendar__navigation button {
+      font-size: 0.9rem !important;
+      padding: 5px !important;
+    }
+  
+    .react-calendar__navigation__label {
+      font-size: 1rem !important;
+    }
   }
   
