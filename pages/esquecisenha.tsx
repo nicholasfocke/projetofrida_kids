@@ -3,6 +3,7 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase/firebaseConfig'; 
 import styles from './esquecisenha.module.css'; 
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 const EsqueciSenha = () => {
   const [email, setEmail] = useState('');
@@ -43,6 +44,15 @@ const EsqueciSenha = () => {
   return (
     <div className={styles.container}>
       <div className={styles.formContainer}>
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <Image
+            src="/images/logo.png" 
+            alt="Logo Frida Kids"
+            width={150}
+            height={150}
+          />
+        </div>
+
         <h2 className={styles.title}>Recuperar senha</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
