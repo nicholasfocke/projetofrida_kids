@@ -6,6 +6,8 @@ import { auth, firestore } from '../firebase/firebaseConfig';
 import bcrypt from 'bcryptjs';
 import InputMask from 'react-input-mask';
 import styles from './register.module.css';
+import Image from 'next/image';
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -72,6 +74,15 @@ const Register = () => {
   return (
     <div className={styles.container}>
       <div className={styles.formContainer}>
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <Image
+          src="/images/logo.png" 
+          alt="Logo Frida Kids"
+          width={150}
+          height={150}
+        />
+      </div>
+      
         <h2 className={styles.title}>Cadastro</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <input 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image'; // Importando o componente Image do Next.js
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
@@ -109,7 +110,17 @@ const Login = () => {
   return (
     <div className={styles.container}>
       <div className={styles.formContainer}>
-        <h2 className={styles.title}>Login</h2>
+        {/* Adicione a logo aqui */}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <Image
+            src="/images/logo.png" 
+            alt="Logo Frida Kids"
+            width={150}
+            height={150}
+          />
+        </div>
+        
+        <h1 className={styles.title}>Login</h1>
         <form onSubmit={handleSubmit} className={styles.form}>
           <input 
             name="email" 
