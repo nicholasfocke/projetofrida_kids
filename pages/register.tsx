@@ -141,7 +141,7 @@ const Register = () => {
           <button type="submit" className={styles.button}>Cadastrar</button>
         </form>
         <p className={styles.redirectText}>Já possui uma conta?</p>
-        <button onClick={handleRedirectToLogin} className={styles.redirectButton}>Ir para Login</button>
+        <button onClick={handleRedirectToLogin} className={styles.redirectButton}>Fazer Login</button>
       </div>
     </div>
   );
