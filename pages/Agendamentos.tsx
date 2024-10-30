@@ -123,6 +123,12 @@ const Agendamentos = () => {
   // Função para enviar e-mail de confirmação de exclusão
   const sendDeleteConfirmationEmail = async (email: string, agendamento: Agendamento) => {
     try {
+      console.log('Enviando e-mail de exclusão com os dados:', {
+        email,
+        userId: user?.uid,
+        agendamentoId: agendamento.id, 
+      });
+  
       await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -130,18 +136,19 @@ const Agendamentos = () => {
         },
         body: JSON.stringify({
           email,
-          userId: user.uid,
-          date: agendamento.data,
+          userId: user?.uid, 
+          date: agendamento.data, 
           service: agendamento.servico,
           time: agendamento.hora,
           funcionaria: agendamento.funcionaria,
-          isDelete: true // Indicador de que o e-mail é de exclusão
+          isDelete: true,
         }),
       });
     } catch (error) {
       console.error('Erro ao enviar e-mail de confirmação de exclusão:', error);
     }
   };
+  
 
   const handleEdit = (agendamento: Agendamento) => {
     setEditingAgendamento(agendamento);

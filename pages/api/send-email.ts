@@ -2,13 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import nodemailer from 'nodemailer';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebaseConfig';
-import { format } from 'date-fns';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { email, userId, date, service, time, funcionaria, isEdit, isDelete } = req.body; // Inclui isDelete e isEdit
+    const { email, userId, date, service, time, funcionaria, isEdit, isDelete } = req.body;
+
+    // Verifique se `userId` e `date` estão definidos
+    if (!userId || !date) {
+      return res.status(400).json({ message: 'userId e date são obrigatórios.' });
+    }
 
     try {
+      // Obtenha o nome do usuário
       const userDocRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userDocRef);
 
@@ -17,7 +22,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const userName = userDoc.data()?.nome;
-      const formattedDate = format(new Date(date), 'dd/MM/yyyy');
+
+      // Formate a data diretamente
+      const [year, month, day] = date.split('-').map(Number);
+      const localDate = new Date(Date.UTC(year, month - 1, day));
+      localDate.setUTCDate(localDate.getUTCDate() + 1);
+      const formattedDate = localDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
 
       const transporter = nodemailer.createTransport({
         service: 'gmail',
