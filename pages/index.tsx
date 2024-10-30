@@ -98,6 +98,23 @@ const Index = () => {
     });
   };
 
+  // email
+  const sendConfirmationEmail = async (email: string, userId: string, date: string, service: string, time: string, funcionaria: string) => {
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, userId, date, service, time, funcionaria }),
+      });
+    } catch (error) {
+      console.error('Erro ao enviar o email de confirmação:', error);
+    }
+  };
+  
+  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -147,6 +164,10 @@ const Index = () => {
         status: 'agendado', // Adicionando o status "agendado"
         funcionaria: appointmentData.funcionaria, // Salvar a funcionária escolhida
       });
+
+      // Enviar o e-mail de confirmação
+      await sendConfirmationEmail(user.email, user.uid, appointmentData.date, appointmentData.service, appointmentData.time, appointmentData.funcionaria);
+
 
       alert('Agendamento realizado com sucesso!');
       

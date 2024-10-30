@@ -105,11 +105,41 @@ const Agendamentos = () => {
   }, [agendamentos]);
 
   const handleRemove = async (id: string) => {
+    const agendamentoToDelete = agendamentos.find((agendamento) => agendamento.id === id);
+    if (!agendamentoToDelete || !user) return;
+
     try {
       await deleteDoc(doc(firestore, 'agendamentos', id));
       setAgendamentos((prev) => prev.filter((agendamento) => agendamento.id !== id));
+
+      // Envia e-mail de confirmação de exclusão
+      await sendDeleteConfirmationEmail(user.email, agendamentoToDelete);
     } catch (error) {
       console.error('Erro ao remover agendamento: ', error);
+      setError('Erro ao remover o agendamento.');
+    }
+  };
+
+  // Função para enviar e-mail de confirmação de exclusão
+  const sendDeleteConfirmationEmail = async (email: string, agendamento: Agendamento) => {
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          userId: user.uid,
+          date: agendamento.data,
+          service: agendamento.servico,
+          time: agendamento.hora,
+          funcionaria: agendamento.funcionaria,
+          isDelete: true // Indicador de que o e-mail é de exclusão
+        }),
+      });
+    } catch (error) {
+      console.error('Erro ao enviar e-mail de confirmação de exclusão:', error);
     }
   };
 
@@ -189,11 +219,37 @@ const Agendamentos = () => {
         )
       );
 
+      // Chame a função para enviar o e-mail de confirmação de edição
+      await sendEditConfirmationEmail(user.email, editingAgendamento);
+
       setEditingAgendamento(null);
       setError('');
     } catch (error) {
       console.error('Erro ao salvar alterações: ', error);
     }
+};
+
+// Função para enviar e-mail de confirmação de edição
+const sendEditConfirmationEmail = async (email: string, agendamento: Agendamento) => {
+  try {
+    await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        userId: user.uid,
+        date: agendamento.data,
+        service: agendamento.servico,
+        time: agendamento.hora,
+        funcionaria: agendamento.funcionaria,
+        isEdit: true // Indicador de que o e-mail é de edição
+      }),
+    });
+  } catch (error) {
+    console.error('Erro ao enviar e-mail de confirmação de edição:', error);
+  }
 };
 
   if (loading) {
@@ -287,7 +343,7 @@ const Agendamentos = () => {
   <>
     <h2>{agendamento.servico}</h2>
     <p>Criança: {agendamento.nomeCrianca}</p>
-    <p>Data: {format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR })}</p>
+    <p>Data: {agendamento.data ? format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR }) : 'Data inválida'}</p>
     <p>Hora: {agendamento.hora}</p>
     <p>Funcionária: {agendamento.funcionaria}</p>
     <p>Status: {agendamento.status}</p>
