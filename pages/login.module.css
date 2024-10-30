@@ -122,3 +122,17 @@
     padding: 10px; /* Ajusta o padding para telas menores */
   }
 }
+.passwordContainer {
+  position: relative;
+  width: 100%;
+}
+
+.eyeIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
