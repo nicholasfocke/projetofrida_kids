@@ -227,7 +227,9 @@ const Agendamentos = () => {
       );
 
       // Chame a função para enviar o e-mail de confirmação de edição
-      await sendEditConfirmationEmail(user.email, editingAgendamento);
+      sendEditConfirmationEmail(user.email, editingAgendamento).catch((error) => {
+        console.error('Erro ao enviar e-mail de confirmação:', error);
+      });
 
       setEditingAgendamento(null);
       setError('');
