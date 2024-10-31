@@ -1,5 +1,6 @@
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router'; 
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
@@ -23,6 +24,8 @@ const Index = () => {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [error, setError] = useState('');
   const times = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+
+  const router = useRouter(); 
 
   useEffect(() => {
     if (!selectedDate || !appointmentData.funcionaria) return;
@@ -158,6 +161,8 @@ const Index = () => {
       setSelectedDate(null);
       setAvailableTimes([]);
       setError('');
+
+      router.push('/Agendamentos');
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);
       setError('Erro ao salvar o agendamento. Tente novamente.');
