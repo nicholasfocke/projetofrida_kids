@@ -108,6 +108,13 @@ const Agendamentos = () => {
     const agendamentoToDelete = agendamentos.find((agendamento) => agendamento.id === id);
     if (!agendamentoToDelete || !user) return;
 
+    // Exibe a confirmação para o usuário
+    const confirmDelete = window.confirm('Deseja excluir o agendamento?');
+    if (!confirmDelete) {
+      // Se o usuário cancelar a exclusão, apenas retorna
+      return;
+    }
+
     try {
       await deleteDoc(doc(firestore, 'agendamentos', id));
       setAgendamentos((prev) => prev.filter((agendamento) => agendamento.id !== id));
@@ -126,9 +133,9 @@ const Agendamentos = () => {
       console.log('Enviando e-mail de exclusão com os dados:', {
         email,
         userId: user?.uid,
-        agendamentoId: agendamento.id, 
+        agendamentoId: agendamento.id,
       });
-  
+
       await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -136,8 +143,8 @@ const Agendamentos = () => {
         },
         body: JSON.stringify({
           email,
-          userId: user?.uid, 
-          date: agendamento.data, 
+          userId: user?.uid,
+          date: agendamento.data,
           service: agendamento.servico,
           time: agendamento.hora,
           funcionaria: agendamento.funcionaria,
@@ -148,7 +155,7 @@ const Agendamentos = () => {
       console.error('Erro ao enviar e-mail de confirmação de exclusão:', error);
     }
   };
-  
+
 
   const handleEdit = (agendamento: Agendamento) => {
     setEditingAgendamento(agendamento);
@@ -236,30 +243,30 @@ const Agendamentos = () => {
     } catch (error) {
       console.error('Erro ao salvar alterações: ', error);
     }
-};
+  };
 
-// Função para enviar e-mail de confirmação de edição
-const sendEditConfirmationEmail = async (email: string, agendamento: Agendamento) => {
-  try {
-    await fetch('/api/send-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        userId: user.uid,
-        date: agendamento.data,
-        service: agendamento.servico,
-        time: agendamento.hora,
-        funcionaria: agendamento.funcionaria,
-        isEdit: true // Indicador de que o e-mail é de edição
-      }),
-    });
-  } catch (error) {
-    console.error('Erro ao enviar e-mail de confirmação de edição:', error);
-  }
-};
+  // Função para enviar e-mail de confirmação de edição
+  const sendEditConfirmationEmail = async (email: string, agendamento: Agendamento) => {
+    try {
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          userId: user.uid,
+          date: agendamento.data,
+          service: agendamento.servico,
+          time: agendamento.hora,
+          funcionaria: agendamento.funcionaria,
+          isEdit: true // Indicador de que o e-mail é de edição
+        }),
+      });
+    } catch (error) {
+      console.error('Erro ao enviar e-mail de confirmação de edição:', error);
+    }
+  };
 
   if (loading) {
     return <p>Carregando agendamentos...</p>;
@@ -274,102 +281,102 @@ const sendEditConfirmationEmail = async (email: string, agendamento: Agendamento
         <div className={styles.cardsContainer}>
           {agendamentos.map((agendamento) => (
             <div key={agendamento.id} className={styles.card}>
-{editingAgendamento && editingAgendamento.id === agendamento.id ? (
-  <div className={styles.editForm}>
-    <h2>Editar Agendamento</h2>
-    <select
-      value={editingAgendamento.servico}
-      onChange={(e) =>
-        setEditingAgendamento({ ...editingAgendamento, servico: e.target.value })
-      }
-    >
-      <option value="" disabled>
-        Selecione um serviço
-      </option>
-      {services.map((service) => (
-        <option key={service} value={service}>
-          {service}
-        </option>
-      ))}
-    </select>
-    <input
-      type="date"
-      value={editingAgendamento.data}
-      onChange={(e) =>
-        setEditingAgendamento({ ...editingAgendamento, data: e.target.value })
-      }
-    />
-    <select
-      value={editingAgendamento.hora}
-      onChange={(e) =>
-        setEditingAgendamento({ ...editingAgendamento, hora: e.target.value })
-      }
-    >
-      <option value="" disabled>
-        Selecione um horário
-      </option>
-      {times.map((time) => (
-        <option key={time} value={time}>
-          {time}
-        </option>
-      ))}
-    </select>
-    <select
-      value={editingAgendamento.funcionaria}
-      onChange={(e) =>
-        setEditingAgendamento({
-          ...editingAgendamento,
-          funcionaria: e.target.value,
-        })
-      }
-    >
-      <option value="" disabled>
-        Selecione a Funcionária
-      </option>
-      <option value="Frida">Frida</option>
-      <option value="Ana">Ana</option>
-    </select>
-    <input
-      type="text"
-      value={editingAgendamento.nomeCrianca}
-      onChange={(e) =>
-        setEditingAgendamento({
-          ...editingAgendamento,
-          nomeCrianca: e.target.value,
-        })
-      }
-    />
-    <button onClick={handleSaveEdit}>Salvar</button>
-    <button
-      onClick={() => handleRemove(editingAgendamento.id)}
-      style={{ backgroundColor: 'red', color: 'white' }}
-    >
-      Remover
-    </button>
-    {error && <p style={{ color: 'white' }}>{error}</p>}
-  </div>
-) : (
-  <>
-    <h2>{agendamento.servico}</h2>
-    <p>Criança: {agendamento.nomeCrianca}</p>
-    <p>Data: {agendamento.data ? format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR }) : 'Data inválida'}</p>
-    <p>Hora: {agendamento.hora}</p>
-    <p>Funcionária: {agendamento.funcionaria}</p>
-    <p>Status: {agendamento.status}</p>
-    <div className={styles.cardActions}>
-      <button className={styles.editButton} onClick={() => handleEdit(agendamento)}>
-        Editar
-      </button>
-      <button
-        className={styles.removeButton}
-        onClick={() => handleRemove(agendamento.id)}
-        style={{ backgroundColor: 'red', color: 'white' }}
-      >
-        Remover
-      </button>
-    </div>
-  </>
-)}
+              {editingAgendamento && editingAgendamento.id === agendamento.id ? (
+                <div className={styles.editForm}>
+                  <h2>Editar Agendamento</h2>
+                  <select
+                    value={editingAgendamento.servico}
+                    onChange={(e) =>
+                      setEditingAgendamento({ ...editingAgendamento, servico: e.target.value })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione um serviço
+                    </option>
+                    {services.map((service) => (
+                      <option key={service} value={service}>
+                        {service}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="date"
+                    value={editingAgendamento.data}
+                    onChange={(e) =>
+                      setEditingAgendamento({ ...editingAgendamento, data: e.target.value })
+                    }
+                  />
+                  <select
+                    value={editingAgendamento.hora}
+                    onChange={(e) =>
+                      setEditingAgendamento({ ...editingAgendamento, hora: e.target.value })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione um horário
+                    </option>
+                    {times.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={editingAgendamento.funcionaria}
+                    onChange={(e) =>
+                      setEditingAgendamento({
+                        ...editingAgendamento,
+                        funcionaria: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecione a Funcionária
+                    </option>
+                    <option value="Frida">Frida</option>
+                    <option value="Ana">Ana</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={editingAgendamento.nomeCrianca}
+                    onChange={(e) =>
+                      setEditingAgendamento({
+                        ...editingAgendamento,
+                        nomeCrianca: e.target.value,
+                      })
+                    }
+                  />
+                  <button onClick={handleSaveEdit}>Salvar</button>
+                  <button
+                    onClick={() => handleRemove(editingAgendamento.id)}
+                    style={{ backgroundColor: 'red', color: 'white' }}
+                  >
+                    Remover
+                  </button>
+                  {error && <p style={{ color: 'white' }}>{error}</p>}
+                </div>
+              ) : (
+                <>
+                  <h2>{agendamento.servico}</h2>
+                  <p>Criança: {agendamento.nomeCrianca}</p>
+                  <p>Data: {agendamento.data ? format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR }) : 'Data inválida'}</p>
+                  <p>Hora: {agendamento.hora}</p>
+                  <p>Funcionária: {agendamento.funcionaria}</p>
+                  <p>Status: {agendamento.status}</p>
+                  <div className={styles.cardActions}>
+                    <button className={styles.editButton} onClick={() => handleEdit(agendamento)}>
+                      Editar
+                    </button>
+                    <button
+                      className={styles.removeButton}
+                      onClick={() => handleRemove(agendamento.id)}
+                      style={{ backgroundColor: 'red', color: 'white' }}
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </>
+              )}
 
             </div>
           ))}
