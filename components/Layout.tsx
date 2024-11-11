@@ -1,11 +1,11 @@
 import { ReactNode, useState, useEffect, useRef } from 'react';
-import { FaInstagram, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa'; 
+import { FaInstagram, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
 import { auth } from '../firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
 import Image from 'next/image';
 import styles from './Layout.module.css';
 import Link from 'next/link';
-import { useRouter } from 'next/router'; 
+import { useRouter } from 'next/router';
 
 type LayoutProps = {
   children: ReactNode;
@@ -63,7 +63,7 @@ const Layout = ({ children }: LayoutProps) => {
         <header className={styles.header}>
           <div className={styles.headerContent}>
             <Image
-              src="/images/logo.png" 
+              src="/images/logo.png"
               alt="Logo Frida Kids"
               width={150}
               height={150}

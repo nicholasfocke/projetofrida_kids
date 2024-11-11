@@ -74,33 +74,33 @@ const Register = () => {
   return (
     <div className={styles.container}>
       <div className={styles.formContainer}>
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <Image
-          src="/images/logo.png" 
-          alt="Logo Frida Kids"
-          width={150}
-          height={150}
-        />
-      </div>
-      
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <Image
+            src="/images/logo.png"
+            alt="Logo Frida Kids"
+            width={150}
+            height={150}
+          />
+        </div>
+
         <h2 className={styles.title}>Cadastro</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <input 
-            name="nome" 
-            type="text" 
-            placeholder="Nome" 
-            value={formData.nome} 
-            onChange={handleChange} 
-            required 
+          <input
+            name="nome"
+            type="text"
+            placeholder="Nome"
+            value={formData.nome}
+            onChange={handleChange}
+            required
             className={styles.input}
           />
-          <input 
-            name="email" 
-            type="email" 
-            placeholder="Email" 
-            value={formData.email} 
-            onChange={handleChange} 
-            required 
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
             className={styles.input}
           />
           <InputMask
@@ -119,22 +119,22 @@ const Register = () => {
               />
             )}
           </InputMask>
-          <input 
-            name="senha" 
-            type="password" 
-            placeholder="Senha" 
-            value={formData.senha} 
-            onChange={handleChange} 
-            required 
+          <input
+            name="senha"
+            type="password"
+            placeholder="Senha"
+            value={formData.senha}
+            onChange={handleChange}
+            required
             className={styles.input}
           />
-          <input 
-            name="confirmarSenha" 
-            type="password" 
-            placeholder="Confirmar Senha" 
-            value={formData.confirmarSenha} 
-            onChange={handleChange} 
-            required 
+          <input
+            name="confirmarSenha"
+            type="password"
+            placeholder="Confirmar Senha"
+            value={formData.confirmarSenha}
+            onChange={handleChange}
+            required
             className={styles.input}
           />
           {error && <p className={styles.error}>{error}</p>}
