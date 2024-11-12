@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { format, parseISO, isSameDay } from 'date-fns';
@@ -18,6 +18,8 @@ interface Agendamento {
   status: string;
   funcionaria: string;
   usuarioEmail: string;
+  usuarioNome: string;
+  telefone: string;
 }
 
 const AdminPage = () => {
@@ -56,19 +58,26 @@ const AdminPage = () => {
       const querySnapshot = await getDocs(q);
       const fetchedAgendamentos: Agendamento[] = [];
 
-      querySnapshot.forEach((doc) => {
-        const agendamentoData = doc.data();
+      for (const docSnap of querySnapshot.docs) {
+        const agendamentoData = docSnap.data();
+
+        // Buscar dados adicionais do usuário
+        const userDocRef = doc(firestore, 'users', agendamentoData.usuarioId);
+        const userDoc = await getDoc(userDocRef);
+
         fetchedAgendamentos.push({
-          id: doc.id,
+          id: docSnap.id,
           data: agendamentoData.data,
           hora: agendamentoData.hora,
           servico: agendamentoData.servico,
           nomeCrianca: agendamentoData.nomeCrianca,
           status: agendamentoData.status,
           funcionaria: agendamentoData.funcionaria,
-          usuarioEmail: agendamentoData.usuarioEmail,
+          usuarioEmail: userDoc.exists() ? userDoc.data()?.email : '',
+          usuarioNome: userDoc.exists() ? userDoc.data()?.nome : '',
+          telefone: userDoc.exists() ? userDoc.data()?.telefone : '',
         });
-      });
+      }
 
       setAgendamentos(fetchedAgendamentos);
     };
@@ -99,6 +108,25 @@ const AdminPage = () => {
       agendamentosDoDia.filter((agendamento) => agendamento.funcionaria === funcionaria)
     );
 
+  // Função para alterar o status do agendamento
+  const handleStatusChange = async (agendamentoId: string) => {
+    const agendamentoRef = doc(firestore, 'agendamentos', agendamentoId);
+    await updateDoc(agendamentoRef, { status: 'concluído' });
+
+    // Atualizar o estado local para refletir a mudança
+    setAgendamentos((prevAgendamentos) =>
+      prevAgendamentos.map((agendamento) =>
+        agendamento.id === agendamentoId
+          ? { ...agendamento, status: 'concluído' }
+          : agendamento
+      )
+    );
+
+    if (selectedAgendamento && selectedAgendamento.id === agendamentoId) {
+      setSelectedAgendamento({ ...selectedAgendamento, status: 'concluído' });
+    }
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Painel do Administrador</h1>
@@ -118,7 +146,6 @@ const AdminPage = () => {
 
       {selectedDate && (
         <div className={styles.agendamentoContainer}>
-          {/* Coluna para Frida */}
           <div className={styles.funcionariaColumn}>
             <h3>Frida</h3>
             {getAgendamentosPorFuncionaria('Frida').length > 0 ? (
@@ -138,7 +165,6 @@ const AdminPage = () => {
             )}
           </div>
 
-          {/* Coluna para Ana */}
           <div className={styles.funcionariaColumn}>
             <h3>Ana</h3>
             {getAgendamentosPorFuncionaria('Ana').length > 0 ? (
@@ -167,8 +193,17 @@ const AdminPage = () => {
           <p><strong>Criança:</strong> {selectedAgendamento.nomeCrianca}</p>
           <p><strong>Funcionária:</strong> {selectedAgendamento.funcionaria}</p>
           <p><strong>Hora:</strong> {selectedAgendamento.hora}</p>
-          <p><strong>Usuário:</strong> {selectedAgendamento.usuarioEmail}</p>
+          <p><strong>Usuário:</strong> {selectedAgendamento.usuarioNome} ({selectedAgendamento.usuarioEmail})</p>
+          <p><strong>Telefone:</strong> {selectedAgendamento.telefone}</p>
           <p><strong>Status:</strong> {selectedAgendamento.status}</p>
+          {selectedAgendamento.status === 'agendado' && (
+            <button
+              className={styles.statusButton}
+              onClick={() => handleStatusChange(selectedAgendamento.id)}
+            >
+              Marcar como Concluído
+            </button>
+          )}
         </div>
       )}
     </div>

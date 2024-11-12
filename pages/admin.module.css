@@ -1,163 +1,198 @@
 /* Container Principal */
 .container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Título da Página */
-  .title {
-    text-align: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 30px;
-  }
-  
-  /* Subtítulo */
-  .subtitle {
-    font-size: 28px;
-    font-weight: 600;
-    color: #333;
-    margin: 20px 0;
-    text-align: center;
-  }
-  
-  /* Calendário */
-  .calendar {
-    margin: 0 auto 30px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Destaque para Dias com Agendamentos */
-  .markedDay {
-    background-color: #0070f3 !important;
-    color: white !important;
-    border-radius: 50%;
-    font-weight: bold;
-  }
-  
-  /* Container para as Colunas de Funcionárias */
-  .agendamentoContainer {
-    display: flex;
-    justify-content: space-around;
-    gap: 20px;
-    flex-wrap: wrap;
-  }
-  
-  /* Coluna de Funcionária */
-  .funcionariaColumn {
-    background-color: #e0f7fa;
-    padding: 20px;
-    border-radius: 10px;
-    width: 45%;
-    min-width: 300px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Título da Funcionária */
-  .funcionariaColumn h3 {
-    text-align: center;
-    font-size: 24px;
-    margin-bottom: 15px;
-    color: #0070f3;
-  }
-  
-  /* Lista de Agendamentos */
-  .agendamentoList {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  /* Item de Agendamento */
-  .agendamentoItem {
-    background-color: #e3f2fd;
-    margin-bottom: 10px;
-    padding: 12px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-  }
-  
-  .agendamentoItem:hover {
-    background-color: #b2ebf2;
-    transform: translateY(-2px);
-  }
-  
-  /* Detalhes do Agendamento Selecionado */
-  .details {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  .details h3 {
-    font-size: 24px;
-    color: #0070f3;
-    margin-bottom: 15px;
-  }
-  
-  .details p {
-    margin: 8px 0;
-    font-size: 18px;
-    color: #555;
-  }
-  
-  /* Animação para exibir detalhes suavemente */
-  @keyframes fadeIn {
-    from {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Título da Página */
+.title {
+  text-align: center;
+  font-size: 36px;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 30px;
+}
+
+/* Subtítulo */
+.subtitle {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0;
+  text-align: center;
+}
+
+/* Calendário */
+.calendar {
+  margin: 0 auto 30px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Destaque para Dias com Agendamentos */
+.markedDay {
+  background-color: #0070f3 !important;
+  color: white !important;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+/* Container para as Colunas de Funcionárias */
+.agendamentoContainer {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Coluna de Funcionária */
+.funcionariaColumn {
+  background-color: #e0f7fa;
+  padding: 20px;
+  border-radius: 10px;
+  width: 45%;
+  min-width: 280px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* Título da Funcionária */
+.funcionariaColumn h3 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 15px;
+  color: #0070f3;
+}
+
+/* Lista de Agendamentos */
+.agendamentoList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Item de Agendamento */
+.agendamentoItem {
+  background-color: #e3f2fd;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.agendamentoItem:hover {
+  background-color: #b2ebf2;
+  transform: translateY(-2px);
+}
+
+/* Detalhes do Agendamento Selecionado */
+.details {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.details h3 {
+  font-size: 24px;
+  color: #0070f3;
+  margin-bottom: 15px;
+}
+
+.details p {
+  margin: 8px 0;
+  font-size: 18px;
+  color: #555;
+}
+
+/* Animação para exibir detalhes suavemente */
+@keyframes fadeIn {
+  from {
       opacity: 0;
       transform: translateY(-10px);
-    }
-    to {
+  }
+  to {
       opacity: 1;
       transform: translateY(0);
-    }
   }
-  
-  /* Ajustes para Dispositivos Móveis */
-  @media (max-width: 768px) {
-    .container {
+}
+
+/* Ajustes para Dispositivos Móveis */
+@media (max-width: 768px) {
+  .container {
       padding: 15px;
-    }
-  
-    .title {
+  }
+
+  .title {
       font-size: 28px;
-    }
-  
-    .subtitle {
+  }
+
+  .subtitle {
       font-size: 22px;
-    }
-  
-    .details p {
+  }
+
+  .details p {
       font-size: 16px;
-    }
-  
-    .agendamentoContainer {
+  }
+
+  .agendamentoContainer {
       flex-direction: column;
-    }
-  
-    .funcionariaColumn {
-      width: 100%;
+      align-items: center;
+  }
+
+  .funcionariaColumn {
+      width: 90%;
+      min-width: auto;
       margin-bottom: 20px;
-    }
-  
-    .agendamentoItem {
+  }
+
+  .agendamentoItem {
       flex-direction: column;
       align-items: flex-start;
-    }
   }
-  
+}
+.statusButton {
+  background-color: #0070f3; 
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 20px;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.statusButton:hover {
+  background-color: #0b57ae; /* Cor mais escura ao passar o mouse */
+  transform: translateY(-3px);
+}
+
+.statusButton:active {
+  background-color: #0070f3; /* Cor ainda mais escura ao clicar */
+  transform: translateY(1px);
+}
+
+/* Ajustes para Dispositivos Móveis */
+@media (max-width: 768px) {
+  .statusButton {
+    font-size: 14px;
+    padding: 10px 15px;
+  }
+}
