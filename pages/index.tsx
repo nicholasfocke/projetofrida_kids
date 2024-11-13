@@ -30,24 +30,49 @@ const Index = () => {
 
 
   useEffect(() => {
-    if (!selectedDate || !appointmentData.funcionaria) return;
-
     const fetchAvailableTimes = async () => {
-      const appointmentsQuery = query(
-        collection(firestore, 'appointments'),
-        where('date', '==', format(selectedDate, 'yyyy-MM-dd')),
-        where('funcionaria', '==', appointmentData.funcionaria)
-      );
+      // Garantir que uma data foi selecionada antes de continuar
+      if (!selectedDate) return;
 
-      const appointmentDocs = await getDocs(appointmentsQuery);
-      const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().time);
-      const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
+      try {
+        // Buscar os agendamentos no Firestore para a data selecionada
+        const appointmentsQuery = query(
+          collection(firestore, 'agendamentos'),
+          where('data', '==', format(selectedDate, 'yyyy-MM-dd'))
+        );
 
-      setAvailableTimes(filteredTimes);
+        const appointmentDocs = await getDocs(appointmentsQuery);
+
+        // Mapear os horários já agendados, independentemente da funcionária
+        const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().hora);
+
+        // Filtrar horários disponíveis removendo os que já estão agendados
+        const now = new Date();
+        const filteredTimes = times.filter((time) => {
+          // Verificar se o horário já está agendado
+          if (bookedTimes.includes(time.trim())) return false;
+
+          // Se a data é hoje, remover horários que já passaram
+          if (format(selectedDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
+            const [hours, minutes] = time.split(':');
+            const appointmentTime = new Date();
+            appointmentTime.setHours(parseInt(hours));
+            appointmentTime.setMinutes(parseInt(minutes));
+            return appointmentTime > now;
+          }
+          return true;
+        });
+
+        setAvailableTimes(filteredTimes);
+      } catch (error) {
+        console.error('Erro ao buscar horários disponíveis:', error);
+      }
     };
 
+    // Chamar a função sempre que um dos campos mudar
     fetchAvailableTimes();
-  }, [selectedDate, appointmentData.funcionaria]);
+  }, [selectedDate, appointmentData.funcionaria, appointmentData.service, appointmentData.nomeCrianca]);
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

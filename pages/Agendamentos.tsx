@@ -24,7 +24,9 @@ const Agendamentos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const services = ['Corte de cabelo', 'Franja', 'Penteado']; // Serviços disponíveis
-  const times = ['08:30','09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
+  const times = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
+  const [availableTimes, setAvailableTimes] = useState<string[]>(times);
+
 
   const router = useRouter(); // Hook para redirecionamento
 
@@ -39,6 +41,39 @@ const Agendamentos = () => {
 
     return () => unsubscribe(); // Limpa o observador quando o componente desmonta
   }, [router]);
+
+  useEffect(() => {
+    if (editingAgendamento) {
+      const fetchAvailableTimes = async () => {
+        const appointmentsQuery = query(collection(firestore, 'agendamentos'));
+        const appointmentDocs = await getDocs(appointmentsQuery);
+
+        const bookedTimes = appointmentDocs.docs
+          .map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              data: data.data,
+              hora: data.hora,
+              funcionaria: data.funcionaria,
+            };
+          })
+          .filter(
+            (item) =>
+              item.id !== editingAgendamento.id && // Excluir o agendamento atual em edição
+              item.data === editingAgendamento.data && // Mesma data
+              item.funcionaria === editingAgendamento.funcionaria // Mesma funcionária
+          )
+          .map((item) => item.hora);
+
+        const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
+        setAvailableTimes(filteredTimes);
+      };
+
+      fetchAvailableTimes();
+    }
+  }, [editingAgendamento?.data, editingAgendamento?.funcionaria]);
+
 
   useEffect(() => {
     const fetchAgendamentos = async () => {
@@ -96,6 +131,7 @@ const Agendamentos = () => {
         }
       });
     };
+
 
     if (agendamentos.length > 0) {
       const intervalId = setInterval(checkAgendamentos, 60000);
@@ -159,9 +195,36 @@ const Agendamentos = () => {
   };
 
 
-  const handleEdit = (agendamento: Agendamento) => {
+  const handleEdit = async (agendamento: Agendamento) => {
     setEditingAgendamento(agendamento);
+
+    // Buscar todos os horários agendados, exceto o agendamento atual
+    const appointmentsQuery = query(collection(firestore, 'agendamentos'));
+    const appointmentDocs = await getDocs(appointmentsQuery);
+
+    const bookedTimes = appointmentDocs.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          data: data.data,
+          hora: data.hora,
+          funcionaria: data.funcionaria,
+        };
+      })
+      .filter(
+        (item) =>
+          item.id !== agendamento.id && // Excluir o agendamento atual em edição
+          item.data === agendamento.data && // Mesma data
+          item.funcionaria === agendamento.funcionaria // Mesma funcionária
+      )
+      .map((item) => item.hora);
+
+    const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
+    setAvailableTimes(filteredTimes);
   };
+
+
 
   const handleSaveEdit = async () => {
     if (!editingAgendamento) return;
@@ -310,7 +373,7 @@ const Agendamentos = () => {
                     }
                   />
                   <select
-                    value={editingAgendamento.hora}
+                    value={editingAgendamento?.hora || ''}
                     onChange={(e) =>
                       setEditingAgendamento({ ...editingAgendamento, hora: e.target.value })
                     }
@@ -318,7 +381,7 @@ const Agendamentos = () => {
                     <option value="" disabled>
                       Selecione um horário
                     </option>
-                    {times.map((time) => (
+                    {availableTimes.map((time) => (
                       <option key={time} value={time}>
                         {time}
                       </option>
@@ -351,10 +414,10 @@ const Agendamentos = () => {
                   />
                   <button onClick={handleSaveEdit}>Salvar</button>
                   <button
-                    onClick={() => handleRemove(editingAgendamento.id)}
+                    onClick={() => setEditingAgendamento(null)}
                     style={{ backgroundColor: 'red', color: 'white' }}
                   >
-                    Remover
+                    Cancelar
                   </button>
                   {error && <p style={{ color: 'white' }}>{error}</p>}
                 </div>
