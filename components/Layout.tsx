@@ -134,7 +134,7 @@ const Layout = ({ children }: LayoutProps) => {
                 Entre em contato
               </a>
             </button>
-            <p>Horários de funcionamento: Ter-Sab: 9h às 19h</p>
+            <p>Horários de funcionamento: Ter-Sab: 08:30h às 18:30h</p>
             <div className={styles.socialMedia}>
               <a href="https://www.instagram.com/frida.kids_?igsh=MXY4dHN5aHpkZjRuOA==" target="_blank" rel="noopener noreferrer">
                 <FaInstagram size={24} color="white" />
@@ -143,6 +143,7 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
         </div>
         <p>© 2024 FridaKids - Todos os direitos reservados.</p>
+        <p>Desenvolvido por DPS</p>
       </footer>
     </div>
   );

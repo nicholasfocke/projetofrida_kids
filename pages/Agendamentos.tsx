@@ -134,6 +134,7 @@ const Agendamentos = () => {
         email,
         userId: user?.uid,
         agendamentoId: agendamento.id,
+        nomeCrianca: agendamento.nomeCrianca,
       });
 
       await fetch('/api/send-email', {
@@ -148,7 +149,7 @@ const Agendamentos = () => {
           service: agendamento.servico,
           time: agendamento.hora,
           funcionaria: agendamento.funcionaria,
-          nomeCrianca: agendamento.nomeCrianca, // Modificação: adicionado o campo nomeCrianca
+          nomeCrianca: agendamento.nomeCrianca,
           isDelete: true,
         }),
       });
@@ -256,13 +257,13 @@ const Agendamentos = () => {
         },
         body: JSON.stringify({
           email,
-          userId: user?.uid,
+          userId: user.uid,
           date: agendamento.data,
           service: agendamento.servico,
           time: agendamento.hora,
           funcionaria: agendamento.funcionaria,
-          nomeCrianca: agendamento.nomeCrianca, // Modificação: adicionado o campo nomeCrianca
-          isEdit: true,
+          nomeCrianca: agendamento.nomeCrianca,
+          isEdit: true // Indicador de que o e-mail é de edição
         }),
       });
     } catch (error) {

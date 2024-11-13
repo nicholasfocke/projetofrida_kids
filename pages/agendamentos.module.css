@@ -99,7 +99,7 @@
 /* Responsividade para telas menores */
 @media (max-width: 768px) {
   .titlecontaineragendamento {
-    font-size: 1.8em;
+    font-size: 2.2em;
   }
 
   .card {
