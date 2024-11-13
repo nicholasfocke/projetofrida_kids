@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
 /* Container Principal */
 .container {
   max-width: 1200px;
@@ -31,7 +33,56 @@
   margin: 0 auto 30px;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  width: 700px;
+  padding: 15px;
+  background-color: #ffffff;
+  font-family: 'Patrick Hand', cursive;
+}
+
+.react-calendar {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.react-calendar__tile {
+  height: 50px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.react-calendar__tile:hover {
+  background-color: #b2ebf2;
+  transform: translateY(-3px);
+}
+
+.react-calendar__tile--now {
+  background-color: #0070f3 !important;
+  color: white !important;
+}
+
+.react-calendar__tile--active {
+  background-color: #0b57ae !important;
+  color: white !important;
+  font-weight: bold;
+}
+
+/* Responsividade para o Calendário em Dispositivos Móveis */
+@media (max-width: 768px) {
+  .calendar {
+    width: 90%;
+    padding: 10px;
+  }
+
+  .react-calendar {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .react-calendar__tile {
+    height: 40px;
+  }
 }
 
 /* Destaque para Dias com Agendamentos */
@@ -50,7 +101,6 @@
   flex-wrap: wrap;
 }
 
-/* Coluna de Funcionária */
 .funcionariaColumn {
   background-color: #e0f7fa;
   padding: 20px;
@@ -61,7 +111,6 @@
   margin-bottom: 20px;
 }
 
-/* Título da Funcionária */
 .funcionariaColumn h3 {
   text-align: center;
   font-size: 24px;
@@ -76,7 +125,6 @@
   margin: 0;
 }
 
-/* Item de Agendamento */
 .agendamentoItem {
   background-color: #e3f2fd;
   margin-bottom: 10px;
@@ -120,51 +168,18 @@
 /* Animação para exibir detalhes suavemente */
 @keyframes fadeIn {
   from {
-      opacity: 0;
-      transform: translateY(-10px);
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
-      opacity: 1;
-      transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Ajustes para Dispositivos Móveis */
-@media (max-width: 768px) {
-  .container {
-      padding: 15px;
-  }
-
-  .title {
-      font-size: 28px;
-  }
-
-  .subtitle {
-      font-size: 22px;
-  }
-
-  .details p {
-      font-size: 16px;
-  }
-
-  .agendamentoContainer {
-      flex-direction: column;
-      align-items: center;
-  }
-
-  .funcionariaColumn {
-      width: 90%;
-      min-width: auto;
-      margin-bottom: 20px;
-  }
-
-  .agendamentoItem {
-      flex-direction: column;
-      align-items: flex-start;
-  }
-}
+/* Botão de Status */
 .statusButton {
-  background-color: #0070f3; 
+  background-color: #0070f3;
   color: white;
   padding: 12px 20px;
   border: none;
@@ -180,19 +195,11 @@
 }
 
 .statusButton:hover {
-  background-color: #0b57ae; /* Cor mais escura ao passar o mouse */
+  background-color: #0b57ae;
   transform: translateY(-3px);
 }
 
 .statusButton:active {
-  background-color: #0070f3; /* Cor ainda mais escura ao clicar */
+  background-color: #0070f3;
   transform: translateY(1px);
-}
-
-/* Ajustes para Dispositivos Móveis */
-@media (max-width: 768px) {
-  .statusButton {
-    font-size: 14px;
-    padding: 10px 15px;
-  }
 }

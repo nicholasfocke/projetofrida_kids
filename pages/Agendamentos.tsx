@@ -24,7 +24,7 @@ const Agendamentos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const services = ['Corte de cabelo', 'Franja', 'Penteado']; // Serviços disponíveis
-  const times = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
+  const times = ['08:30','09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
 
   const router = useRouter(); // Hook para redirecionamento
 
@@ -148,6 +148,7 @@ const Agendamentos = () => {
           service: agendamento.servico,
           time: agendamento.hora,
           funcionaria: agendamento.funcionaria,
+          nomeCrianca: agendamento.nomeCrianca, // Modificação: adicionado o campo nomeCrianca
           isDelete: true,
         }),
       });
@@ -255,12 +256,13 @@ const Agendamentos = () => {
         },
         body: JSON.stringify({
           email,
-          userId: user.uid,
+          userId: user?.uid,
           date: agendamento.data,
           service: agendamento.servico,
           time: agendamento.hora,
           funcionaria: agendamento.funcionaria,
-          isEdit: true // Indicador de que o e-mail é de edição
+          nomeCrianca: agendamento.nomeCrianca, // Modificação: adicionado o campo nomeCrianca
+          isEdit: true,
         }),
       });
     } catch (error) {

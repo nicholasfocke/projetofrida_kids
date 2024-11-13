@@ -1,6 +1,6 @@
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router'; 
+import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
@@ -16,16 +16,18 @@ const Index = () => {
     date: '',
     time: '',
     service: '',
-    childName: '',
+    nomeCrianca: '',
     funcionaria: '',
   });
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [error, setError] = useState('');
-  const times = ['08:30','09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+  const times = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
 
-  const router = useRouter(); 
+  const router = useRouter();
+
+
 
   useEffect(() => {
     if (!selectedDate || !appointmentData.funcionaria) return;
@@ -94,14 +96,22 @@ const Index = () => {
     });
   };
 
-  const sendConfirmationEmail = async (email: string, userId: string, date: string, service: string, time: string, funcionaria: string) => {
+  const sendConfirmationEmail = async (email: string, userId: string, date: string, service: string, nomeCrianca: string, time: string, funcionaria: string) => {
     try {
       await fetch('/api/send-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, userId, date, service, time, funcionaria }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user?.email,
+          userId: user?.uid,
+          date: appointmentData.date,
+          service: appointmentData.service,
+          time: appointmentData.time,
+          funcionaria: appointmentData.funcionaria,
+          nomeCrianca: appointmentData.nomeCrianca,
+          isEdit: false,
+          isDelete: false
+        }),
       });
     } catch (error) {
       console.error('Erro ao enviar o email de confirmação:', error);
@@ -136,7 +146,7 @@ const Index = () => {
 
     try {
       await addDoc(collection(firestore, 'agendamentos'), {
-        nomeCrianca: appointmentData.childName,
+        nomeCrianca: appointmentData.nomeCrianca,
         servico: appointmentData.service,
         data: appointmentData.date,
         hora: appointmentData.time,
@@ -146,7 +156,7 @@ const Index = () => {
         funcionaria: appointmentData.funcionaria,
       });
 
-      sendConfirmationEmail(user.email, user.uid, appointmentData.date, appointmentData.service, appointmentData.time, appointmentData.funcionaria)
+      sendConfirmationEmail(user.email, user.uid, appointmentData.date, appointmentData.service, appointmentData.nomeCrianca, appointmentData.time, appointmentData.funcionaria)
         .catch((error) => console.error('Erro ao enviar o email de confirmação:', error));
 
       alert('Agendamento realizado com sucesso!');
@@ -155,7 +165,7 @@ const Index = () => {
         date: '',
         time: '',
         service: '',
-        childName: '',
+        nomeCrianca: '',
         funcionaria: '',
       });
       setSelectedDate(null);
@@ -190,8 +200,39 @@ const Index = () => {
           <h2 className={styles.title}>Agendar Serviço</h2>
           {error && <p style={{ color: 'red' }}>{error}</p>}
 
+          <Calendar
+            className={styles.reactCalendar}
+            onChange={handleDateChange}
+            value={selectedDate}
+            tileDisabled={({ date }) => !isDateValid(date)}
+            maxDetail="month"
+            minDetail="month"
+            navigationLabel={({ date, label, locale, view }) => `${format(date, 'MMMM yyyy', { locale: ptBR })}`}
+            prev2Label={null}
+            next2Label={null}
+          />
+          {selectedDate && (
+            <div className={styles.formGroupCalendar}>
+              <select
+                name="time"
+                value={appointmentData.time}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                required
+              >
+                <option value="">Selecione o horário</option>
+                {availableTimes.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+
           <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.formGroup}>
+            {/* Linha com os dois selects */}
+            <div className={styles.formGroupRow}>
               <select
                 id="service"
                 name="service"
@@ -204,60 +245,36 @@ const Index = () => {
                 <option value="Corte de cabelo">Corte de cabelo</option>
                 <option value="Franja">Franja</option>
                 <option value="Penteado">Penteado</option>
+                <option value="Hidratação">Hidratação</option>
+                <option value="Esmaltação">Esmaltação</option>
+                <option value="Maquiagem">Maquiagem</option>
+              </select>
+
+              <select
+                name="funcionaria"
+                value={appointmentData.funcionaria}
+                onChange={handleInputChange}
+                required
+                className={styles.inputoption}
+              >
+                <option value="">Selecione uma funcionária</option>
+                <option value="Frida">Frida</option>
+                <option value="Ana">Ana</option>
               </select>
             </div>
 
+            {/* Campo para o nome da criança */}
             <div className={styles.formGroupCalendar}>
               <input
                 type="text"
-                id="childName"
-                name="childName"
+                id="nomeCrianca"
+                name="nomeCrianca"
                 placeholder="Nome da Criança"
-                value={appointmentData.childName}
+                value={appointmentData.nomeCrianca}
                 onChange={handleInputChange}
                 required
+                className={styles.inputnome}
               />
-
-              <div className={styles.formGroup}>
-                <label htmlFor="funcionaria"></label>
-                <select
-                  name="funcionaria"
-                  value={appointmentData.funcionaria}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Selecione uma funcionária</option>
-                  <option value="Frida">Frida</option>
-                  <option value="Ana">Ana</option>
-                </select>
-              </div>
-
-              <Calendar
-                className={styles.reactCalendar}
-                onChange={handleDateChange}
-                value={selectedDate}
-                tileDisabled={({ date }) => !isDateValid(date)}
-                maxDetail="month"
-                minDetail="month"
-                navigationLabel={({ date, label, locale, view }) => `${format(date, 'MMMM yyyy', { locale: ptBR })}`}
-                prev2Label={null}
-                next2Label={null}
-              />
-              {selectedDate && (
-                <select
-                  name="time"
-                  value={appointmentData.time}
-                  onChange={(e) => handleTimeChange(e.target.value)}
-                  required
-                >
-                  <option value="">Selecione o horário</option>
-                  {availableTimes.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              )}
             </div>
 
             <button type="submit" className={styles.button}>Agendar</button>
