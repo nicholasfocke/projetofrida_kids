@@ -23,7 +23,8 @@ const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [error, setError] = useState('');
-  const times = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+  const standardTimes = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+  const adminTimes = ['08:40', '09:40', '10:40', '11:40', '13:40', '14:40', '15:40', '16:40', '17:40', '18:40'];
 
   const router = useRouter();
 
@@ -31,28 +32,25 @@ const Index = () => {
 
   useEffect(() => {
     const fetchAvailableTimes = async () => {
-      // Garantir que uma data foi selecionada antes de continuar
       if (!selectedDate) return;
 
       try {
-        // Buscar os agendamentos no Firestore para a data selecionada
         const appointmentsQuery = query(
           collection(firestore, 'agendamentos'),
           where('data', '==', format(selectedDate, 'yyyy-MM-dd'))
         );
 
         const appointmentDocs = await getDocs(appointmentsQuery);
-
-        // Mapear os horários já agendados, independentemente da funcionária
         const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().hora);
 
-        // Filtrar horários disponíveis removendo os que já estão agendados
         const now = new Date();
-        const filteredTimes = times.filter((time) => {
-          // Verificar se o horário já está agendado
+        const allTimes = user?.tipo === 'admin'
+          ? [...standardTimes, ...adminTimes]
+          : standardTimes;
+
+        const filteredTimes = allTimes.filter((time) => {
           if (bookedTimes.includes(time.trim())) return false;
 
-          // Se a data é hoje, remover horários que já passaram
           if (format(selectedDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
             const [hours, minutes] = time.split(':');
             const appointmentTime = new Date();
@@ -75,11 +73,34 @@ const Index = () => {
 
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser || null);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          // Buscar o documento do usuário na coleção 'users' pelo `uid`
+          const userQuery = query(
+            collection(firestore, 'users'),
+            where('__name__', '==', currentUser.uid)
+          );
+          const userSnapshot = await getDocs(userQuery);
+
+          if (!userSnapshot.empty) {
+            const userData = userSnapshot.docs[0].data();
+            setUser({ ...currentUser, tipo: userData.tipo || 'client' });
+          } else {
+            setUser({ ...currentUser, tipo: 'client' });
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do usuário:', error);
+        }
+      } else {
+        setUser(null);
+        router.push('/login');
+      }
     });
+
     return () => unsubscribe();
-  }, []);
+  }, [router]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setAppointmentData((prevData) => ({
@@ -207,7 +228,7 @@ const Index = () => {
   const getAvailableTimesForDay = (date: Date) => {
     const now = new Date();
     if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
-      return times.filter((time) => {
+      return standardTimes.filter((time) => {
         const [hours, minutes] = time.split(':');
         const appointmentTime = new Date();
         appointmentTime.setHours(parseInt(hours));
@@ -215,7 +236,7 @@ const Index = () => {
         return appointmentTime > now;
       });
     }
-    return times;
+    return standardTimes;
   };
 
   return (
@@ -253,6 +274,7 @@ const Index = () => {
               </select>
             </div>
           )}
+
 
 
           <form onSubmit={handleSubmit} className={styles.form}>
