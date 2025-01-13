@@ -7,13 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     const { email, userId, date, service, time, funcionaria, nomeCrianca, isEdit, isDelete } = req.body;
 
-    // Verifique se `userId` e `date` estão definidos
     if (!userId || !date) {
       return res.status(400).json({ message: 'userId e date são obrigatórios.' });
     }
 
     try {
-      // Obtenha o nome e telefone do usuário
       const userDocRef = doc(firestore, 'users', userId);
       const userDoc = await getDoc(userDocRef);
 
@@ -24,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const userName = userDoc.data()?.nome;
       const userPhone = userDoc.data()?.telefone;
 
-      // Formatar a data
       const [year, month, day] = date.split('-').map(Number);
       const localDate = new Date(Date.UTC(year, month - 1, day));
       localDate.setUTCDate(localDate.getUTCDate() + 1);
@@ -34,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         year: 'numeric',
       });
 
-      // Configuração do Nodemailer
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -43,7 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      // Funções de envio de email
       const sendUserEmail = async (subject: string, message: string) => {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
@@ -62,7 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       };
 
-      // Mensagens de email baseadas na ação
       const userMessage = `
         <div style="font-family: Arial, sans-serif; color: #333;">
           <h2>Olá, ${userName}!</h2>
@@ -94,7 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         </div>
       `;
 
-      // Enviar emails com base na operação
       if (isDelete) {
         await sendUserEmail('Confirmação de Exclusão do Agendamento', userMessage);
         await sendAdminEmail('Notificação de Exclusão de Agendamento', adminMessage);
