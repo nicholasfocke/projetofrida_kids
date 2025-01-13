@@ -10,7 +10,7 @@
 
 .formContainer {
   background-color: #f1f1f1f3;
-  padding: 40px;
+  padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   max-width: 700px;
@@ -20,7 +20,7 @@
 
 .title {
   text-align: center;
-  font-size: 35px;
+  font-size: 30px;
   color: #000000;
   margin-bottom: 20px;
   font-family: 'Patrick Hand', cursive;
@@ -35,7 +35,7 @@
 .inputGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 10px;
   justify-content: space-between;
 }
 
@@ -102,7 +102,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 10px;
   max-width: 500px;
   width: 90%;
@@ -180,11 +180,10 @@
   background-color: white;
   color: #333;
   border-radius: 5px;
-  margin: 5px;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 80px;
+  width: 75px;
 }
 
 .timeButton:hover {
@@ -222,7 +221,7 @@
   }
 
   .timeButton {
-    width: 70px;
+    width: 60px;
     font-size: 12px;
   }
 
