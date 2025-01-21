@@ -1,7 +1,8 @@
 import { ReactNode, useState, useEffect, useRef } from 'react';
 import { FaInstagram, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
-import { auth } from '../firebase/firebaseConfig';
+import { auth, firestore } from '../firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import Image from 'next/image';
 import styles from './Layout.module.css';
 import Link from 'next/link';
@@ -13,6 +14,7 @@ type LayoutProps = {
 
 const Layout = ({ children }: LayoutProps) => {
   const [menuOpen, setMenuOpen] = useState(false); // Controla se o menu está aberto
+  const [isAdmin, setIsAdmin] = useState(false); // Estado para verificar se o usuário é administrador
   const router = useRouter(); // Hook para redirecionamento
   const menuRef = useRef<HTMLDivElement>(null); // Referência para o menu
 
@@ -54,11 +56,28 @@ const Layout = ({ children }: LayoutProps) => {
     closeMenu();
   }, [router.pathname]);
 
+  // Verificar se o usuário é administrador
+  useEffect(() => {
+    const checkUserRole = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists() && userDoc.data().tipo === 'admin') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      }
+    };
+
+    checkUserRole();
+  }, [auth.currentUser]);
+
   const noHeaderRoutes = ['/login', '/register', '/esquecisenha'];
 
   return (
     <div className={styles.layout}>
-      {/* Verificar se a rota atual está em noHeaderRoutes e, se não estiver, exibir o header */}
       {!noHeaderRoutes.includes(router.pathname) && (
         <header className={styles.header}>
           <div className={styles.headerContent}>
@@ -69,26 +88,28 @@ const Layout = ({ children }: LayoutProps) => {
               height={150}
             />
 
-            {/* Ícone de menu para versões mobile */}
             <div className={styles.menuIcon} onClick={toggleMenu}>
               {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </div>
 
-            {/* Navegação (ocultada em telas pequenas) */}
             <nav className={`${styles.nav} ${menuOpen ? styles.navOpen : ''}`} ref={menuRef}>
-              {/* Ícone de fechar menu para dispositivos móveis */}
               {menuOpen && (
                 <div className={styles.closeMenuIcon} onClick={toggleMenu}>
                   <FaTimes size={24} />
                 </div>
               )}
 
-              {/* Links do menu */}
               <Link className={styles.headerLinks} href="/" onClick={closeMenu}>Agendamento</Link>
               <Link className={styles.headerLinks} href="/Agendamentos" onClick={closeMenu}>Meus Agendamentos</Link>
               <Link className={styles.headerLinks} href="/profile" onClick={closeMenu}>Meu Perfil</Link>
 
-              {/* Botão de logout dentro do menu se a pessoa estiver em celular */}
+              {/* Botão de administrador visível apenas para admin */}
+              {isAdmin && (
+                <Link className={styles.headerLinks} href="/admin" onClick={closeMenu}>
+                  Painel do Administrador
+                </Link>
+              )}
+
               {menuOpen && (
                 <div className={styles.logoutContainer}>
                   <button
@@ -106,7 +127,6 @@ const Layout = ({ children }: LayoutProps) => {
               )}
             </nav>
 
-            {/* Ícone de logout fora do menu (somente em telas maiores) */}
             {!menuOpen && (
               <div className={styles.logoutDesktop}>
                 <button

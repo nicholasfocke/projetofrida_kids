@@ -25,19 +25,20 @@ interface Agendamento {
 const AdminPage = () => {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true); // Adicionado para controlar o carregamento
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
   const router = useRouter();
 
-  // Função para verificar se o usuário é administrador
   const checkAdminStatus = async (uid: string) => {
     const userDocRef = doc(firestore, 'users', uid);
     const userDoc = await getDoc(userDocRef);
     if (userDoc.exists() && userDoc.data()?.tipo === 'admin') {
       setUser(userDoc.data());
     } else {
-      router.push('/');
+      router.replace('/'); // Redireciona imediatamente para a página inicial
     }
+    setIsLoading(false); // Define carregamento como concluído
   };
 
   useEffect(() => {
@@ -45,7 +46,8 @@ const AdminPage = () => {
       if (currentUser) {
         checkAdminStatus(currentUser.uid);
       } else {
-        router.push('/login');
+        router.replace('/login'); // Redireciona para login se não autenticado
+        setIsLoading(false);
       }
     });
 
@@ -61,7 +63,6 @@ const AdminPage = () => {
       for (const docSnap of querySnapshot.docs) {
         const agendamentoData = docSnap.data();
 
-        // Buscar dados adicionais do usuário
         const userDocRef = doc(firestore, 'users', agendamentoData.usuarioId);
         const userDoc = await getDoc(userDocRef);
 
@@ -108,12 +109,10 @@ const AdminPage = () => {
       agendamentosDoDia.filter((agendamento) => agendamento.funcionaria === funcionaria)
     );
 
-  // Função para alterar o status do agendamento
   const handleStatusChange = async (agendamentoId: string) => {
     const agendamentoRef = doc(firestore, 'agendamentos', agendamentoId);
     await updateDoc(agendamentoRef, { status: 'concluído' });
 
-    // Atualizar o estado local para refletir a mudança
     setAgendamentos((prevAgendamentos) =>
       prevAgendamentos.map((agendamento) =>
         agendamento.id === agendamentoId
@@ -126,6 +125,11 @@ const AdminPage = () => {
       setSelectedAgendamento({ ...selectedAgendamento, status: 'concluído' });
     }
   };
+
+  if (isLoading) {
+    // Exibe uma mensagem de carregamento enquanto verifica as permissões
+    return <div className={styles.loading}>Carregando...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -146,6 +150,7 @@ const AdminPage = () => {
 
       {selectedDate && (
         <div className={styles.agendamentoContainer}>
+          {/* Coluna da funcionária Frida */}
           <div className={styles.funcionariaColumn}>
             <h3>Frida</h3>
             {getAgendamentosPorFuncionaria('Frida').length > 0 ? (
@@ -165,6 +170,7 @@ const AdminPage = () => {
             )}
           </div>
 
+          {/* Coluna da funcionária Ana */}
           <div className={styles.funcionariaColumn}>
             <h3>Ana</h3>
             {getAgendamentosPorFuncionaria('Ana').length > 0 ? (
