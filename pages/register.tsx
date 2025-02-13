@@ -116,15 +116,6 @@ const Register = () => {
               />
             )}
           </InputMask>
-          <input
-            name="cpf"
-            type="text"
-            placeholder="CPF"
-            value={formData.cpf}
-            onChange={handleChange}
-            required
-            className={styles.input}
-          />
 
           {/* Campo de senha com ícone de olho */}
           <div className={styles.passwordContainer}>
