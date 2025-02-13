@@ -116,6 +116,15 @@ const Register = () => {
               />
             )}
           </InputMask>
+          <input
+            name="cpf"
+            type="text"
+            placeholder="CPF"
+            value={formData.cpf}
+            onChange={handleChange}
+            required
+            className={styles.input}
+          />
 
           {/* Campo de senha com ícone de olho */}
           <div className={styles.passwordContainer}>
@@ -131,9 +140,9 @@ const Register = () => {
             <span onClick={toggleShowPassword} className={styles.eyeIcon}>
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-                <path d="M0 0h24v24H0z" fill="none" />
-                <path d="M12 4.5C7.5 4.5 3.7 7.7 2 12c1.7 4.3 5.5 7.5 10 7.5s8.3-3.2 10-7.5c-1.7-4.3-5.5-7.5-10-7.5zm0 12.5c-2.8 0-5.2-1.9-5.8-4.5.6-2.6 3-4.5 5.8-4.5 2.8 0 5.2 1.9 5.8 4.5-.6 2.6-3 4.5-5.8 4.5zM12 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" />
-              </svg>
+                  <path d="M0 0h24v24H0z" fill="none" />
+                  <path d="M12 4.5C7.5 4.5 3.7 7.7 2 12c1.7 4.3 5.5 7.5 10 7.5s8.3-3.2 10-7.5c-1.7-4.3-5.5-7.5-10-7.5zm0 12.5c-2.8 0-5.2-1.9-5.8-4.5.6-2.6 3-4.5 5.8-4.5 2.8 0 5.2 1.9 5.8 4.5-.6 2.6-3 4.5-5.8 4.5zM12 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" />
+                </svg>
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
                   <path d="M0 0h24v24H0z" fill="none" />
@@ -156,10 +165,10 @@ const Register = () => {
             />
             <span onClick={toggleShowConfirmPassword} className={styles.eyeIcon}>
               {showConfirmPassword ? (
-               <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-               <path d="M0 0h24v24H0z" fill="none" />
-               <path d="M12 4.5C7.5 4.5 3.7 7.7 2 12c1.7 4.3 5.5 7.5 10 7.5s8.3-3.2 10-7.5c-1.7-4.3-5.5-7.5-10-7.5zm0 12.5c-2.8 0-5.2-1.9-5.8-4.5.6-2.6 3-4.5 5.8-4.5 2.8 0 5.2 1.9 5.8 4.5-.6 2.6-3 4.5-5.8 4.5zM12 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" />
-             </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+                  <path d="M0 0h24v24H0z" fill="none" />
+                  <path d="M12 4.5C7.5 4.5 3.7 7.7 2 12c1.7 4.3 5.5 7.5 10 7.5s8.3-3.2 10-7.5c-1.7-4.3-5.5-7.5-10-7.5zm0 12.5c-2.8 0-5.2-1.9-5.8-4.5.6-2.6 3-4.5 5.8-4.5 2.8 0 5.2 1.9 5.8 4.5-.6 2.6-3 4.5-5.8 4.5zM12 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" />
+                </svg>
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
                   <path d="M0 0h24v24H0z" fill="none" />

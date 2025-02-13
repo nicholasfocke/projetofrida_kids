@@ -28,6 +28,7 @@ const AdminPage = () => {
   const [isLoading, setIsLoading] = useState(true); // Adicionado para controlar o carregamento
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
+  const [error, setError] = useState(''); // Adicionado para controlar erros
   const router = useRouter();
 
   const checkAdminStatus = async (uid: string) => {
@@ -110,6 +111,11 @@ const AdminPage = () => {
     );
 
   const handleStatusChange = async (agendamentoId: string) => {
+    if (!user || user.tipo !== 'admin') {
+      setError('Você não tem permissão para alterar o status deste agendamento.');
+      return;
+    }
+
     const agendamentoRef = doc(firestore, 'agendamentos', agendamentoId);
     await updateDoc(agendamentoRef, { status: 'concluído' });
 
@@ -210,6 +216,7 @@ const AdminPage = () => {
               Marcar como Concluído
             </button>
           )}
+          {error && <p className={styles.error}>{error}</p>}
         </div>
       )}
     </div>

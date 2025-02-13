@@ -4,7 +4,7 @@ import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração 
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import { useRouter } from 'next/router'; // Para redirecionamento
 import styles from './agendamentos.module.css'; // Estilos personalizados
-import { format, isAfter, isBefore, isSameDay, addMinutes, parseISO } from 'date-fns'; // Manipulação de datas
+import { format, isAfter, addMinutes, parseISO } from 'date-fns'; // Manipulação de datas
 import { ptBR } from 'date-fns/locale'; // Locale para português
 
 interface Agendamento {
@@ -26,7 +26,6 @@ const Agendamentos = () => {
   const services = ['Corte de cabelo', 'Franja', 'Penteado']; // Serviços disponíveis
   const times = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
   const [availableTimes, setAvailableTimes] = useState<string[]>(times);
-
 
   const router = useRouter(); // Hook para redirecionamento
 
@@ -73,7 +72,6 @@ const Agendamentos = () => {
       fetchAvailableTimes();
     }
   }, [editingAgendamento?.data, editingAgendamento?.funcionaria]);
-
 
   useEffect(() => {
     const fetchAgendamentos = async () => {
@@ -131,7 +129,6 @@ const Agendamentos = () => {
         }
       });
     };
-
 
     if (agendamentos.length > 0) {
       const intervalId = setInterval(checkAgendamentos, 60000);
@@ -194,7 +191,6 @@ const Agendamentos = () => {
     }
   };
 
-
   const handleEdit = async (agendamento: Agendamento) => {
     setEditingAgendamento(agendamento);
 
@@ -223,8 +219,6 @@ const Agendamentos = () => {
     const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
     setAvailableTimes(filteredTimes);
   };
-
-
 
   const handleSaveEdit = async () => {
     if (!editingAgendamento) return;
@@ -443,7 +437,6 @@ const Agendamentos = () => {
                   </div>
                 </>
               )}
-
             </div>
           ))}
         </div>

@@ -120,6 +120,12 @@ const Index = () => {
     const isPastDay = format(date, 'yyyy-MM-dd') < format(today, 'yyyy-MM-dd');
     const isNotCurrentYear = getYear(date) !== getYear(today);
 
+    // Permitir que administradores agendem em qualquer dia
+    if (user?.tipo === 'admin') {
+      return !isPastDay && !isNotCurrentYear;
+    }
+
+    // Bloquear domingos, segundas e datas passadas para usuários comuns
     return !isPastDay && !isMonday && !isSunday && !isNotCurrentYear;
   };
 
