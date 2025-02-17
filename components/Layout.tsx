@@ -162,7 +162,7 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
           </div>
         </div>
-        <p>© 2024 FridaKids - Todos os direitos reservados.</p>
+        <p>© 2025 FridaKids - Todos os direitos reservados.</p>
         <p>Desenvolvido por DPS</p>
       </footer>
     </div>
