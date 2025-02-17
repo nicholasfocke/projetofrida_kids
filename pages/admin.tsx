@@ -25,10 +25,10 @@ interface Agendamento {
 const AdminPage = () => {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true); // Adicionado para controlar o carregamento
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
-  const [error, setError] = useState(''); // Adicionado para controlar erros
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const checkAdminStatus = async (uid: string) => {
@@ -37,9 +37,9 @@ const AdminPage = () => {
     if (userDoc.exists() && userDoc.data()?.tipo === 'admin') {
       setUser(userDoc.data());
     } else {
-      router.replace('/'); // Redireciona imediatamente para a página inicial
+      router.replace('/');
     }
-    setIsLoading(false); // Define carregamento como concluído
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -47,7 +47,7 @@ const AdminPage = () => {
       if (currentUser) {
         checkAdminStatus(currentUser.uid);
       } else {
-        router.replace('/login'); // Redireciona para login se não autenticado
+        router.replace('/login');
         setIsLoading(false);
       }
     });
@@ -133,7 +133,6 @@ const AdminPage = () => {
   };
 
   if (isLoading) {
-    // Exibe uma mensagem de carregamento enquanto verifica as permissões
     return <div className={styles.loading}>Carregando...</div>;
   }
 
@@ -153,72 +152,6 @@ const AdminPage = () => {
         }
         locale="pt-BR"
       />
-
-      {selectedDate && (
-        <div className={styles.agendamentoContainer}>
-          {/* Coluna da funcionária Frida */}
-          <div className={styles.funcionariaColumn}>
-            <h3>Frida</h3>
-            {getAgendamentosPorFuncionaria('Frida').length > 0 ? (
-              <ul className={styles.agendamentoList}>
-                {getAgendamentosPorFuncionaria('Frida').map((agendamento) => (
-                  <li
-                    key={agendamento.id}
-                    className={styles.agendamentoItem}
-                    onClick={() => handleAgendamentoClick(agendamento)}
-                  >
-                    <strong>{agendamento.hora}</strong> - {agendamento.servico}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Sem agendamentos</p>
-            )}
-          </div>
-
-          {/* Coluna da funcionária Ana */}
-          <div className={styles.funcionariaColumn}>
-            <h3>Ana</h3>
-            {getAgendamentosPorFuncionaria('Ana').length > 0 ? (
-              <ul className={styles.agendamentoList}>
-                {getAgendamentosPorFuncionaria('Ana').map((agendamento) => (
-                  <li
-                    key={agendamento.id}
-                    className={styles.agendamentoItem}
-                    onClick={() => handleAgendamentoClick(agendamento)}
-                  >
-                    <strong>{agendamento.hora}</strong> - {agendamento.servico}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Sem agendamentos</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {selectedAgendamento && (
-        <div className={styles.details}>
-          <h3>Detalhes do Agendamento</h3>
-          <p><strong>Serviço:</strong> {selectedAgendamento.servico}</p>
-          <p><strong>Criança:</strong> {selectedAgendamento.nomeCrianca}</p>
-          <p><strong>Funcionária:</strong> {selectedAgendamento.funcionaria}</p>
-          <p><strong>Hora:</strong> {selectedAgendamento.hora}</p>
-          <p><strong>Usuário:</strong> {selectedAgendamento.usuarioNome} ({selectedAgendamento.usuarioEmail})</p>
-          <p><strong>Telefone:</strong> {selectedAgendamento.telefone}</p>
-          <p><strong>Status:</strong> {selectedAgendamento.status}</p>
-          {selectedAgendamento.status === 'agendado' && (
-            <button
-              className={styles.statusButton}
-              onClick={() => handleStatusChange(selectedAgendamento.id)}
-            >
-              Marcar como Concluído
-            </button>
-          )}
-          {error && <p className={styles.error}>{error}</p>}
-        </div>
-      )}
     </div>
   );
 };

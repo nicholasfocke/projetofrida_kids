@@ -8,15 +8,16 @@
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
 /* Título da Página */
 .title {
-  text-align: center;
   font-size: 36px;
   font-weight: bold;
   color: #000;
   margin-bottom: 30px;
+  font-family: 'Patrick Hand', cursive;
 }
 
 /* Subtítulo */
@@ -28,19 +29,20 @@
   text-align: center;
 }
 
-/* Calendário */
+/* Calendário - Ajuste de Tamanho */
 .calendar {
   margin: 0 auto 30px;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 100%;
-  width: 700px;
+  width: 100%;
+  max-width: 450px; /* Ajustado para um tamanho melhor */
   padding: 15px;
   background-color: #ffffff;
   font-family: 'Patrick Hand', cursive;
 }
 
+/* Ajustes da Biblioteca React-Calendar */
 .react-calendar {
   width: 100%;
   border-radius: 12px;
@@ -68,10 +70,16 @@
   font-weight: bold;
 }
 
-/* Responsividade para o Calendário em Dispositivos Móveis */
+/* Responsividade do Calendário */
+@media (min-width: 1024px) {
+  .calendar {
+    max-width: 500px;
+  }
+}
+
 @media (max-width: 768px) {
   .calendar {
-    width: 90%;
+    max-width: 95%;
     padding: 10px;
   }
 
@@ -93,7 +101,7 @@
   font-weight: bold;
 }
 
-/* Container para as Colunas de Funcionárias */
+/* Container das Colunas de Funcionárias */
 .agendamentoContainer {
   display: flex;
   justify-content: space-around;
