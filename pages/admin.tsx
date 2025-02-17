@@ -155,10 +155,6 @@ const AdminPage = () => {
 
       {selectedDate && (
         <div className={styles.agendamentoContainer}>
-          <h2 className={styles.subtitle}>
-            Agendamentos para {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
-          </h2>
-
           {['Frida', 'Ana'].map((funcionaria) => {
             const agendamentosFuncionaria = getAgendamentosPorFuncionaria(funcionaria);
 
