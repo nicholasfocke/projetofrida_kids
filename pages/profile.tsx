@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import styles from './Profile.module.css';
+import styles from './profile.module.css';
 
 const Profile = () => {
   const [userData, setUserData] = useState({
