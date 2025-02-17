@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const sendAdminEmail = async (subject: string, message: string) => {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
-          to: 'nicholasfocke05@gmail.com',
+          to: 'equipefridakids@gmail.com',
           subject,
           html: message,
         });
