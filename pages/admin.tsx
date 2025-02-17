@@ -152,6 +152,61 @@ const AdminPage = () => {
         }
         locale="pt-BR"
       />
+
+      {selectedDate && (
+        <div className={styles.agendamentoContainer}>
+          <h2 className={styles.subtitle}>
+            Agendamentos para {format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}
+          </h2>
+
+          {['Frida', 'Ana'].map((funcionaria) => {
+            const agendamentosFuncionaria = getAgendamentosPorFuncionaria(funcionaria);
+
+            return (
+              <div key={funcionaria} className={styles.funcionariaColumn}>
+                <h3>{funcionaria}</h3>
+                {agendamentosFuncionaria.length > 0 ? (
+                  <ul className={styles.agendamentoList}>
+                    {agendamentosFuncionaria.map((agendamento) => (
+                      <li
+                        key={agendamento.id}
+                        className={styles.agendamentoItem}
+                        onClick={() => handleAgendamentoClick(agendamento)}
+                      >
+                        <strong>{agendamento.hora}</strong> - {agendamento.servico}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Sem agendamentos</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {selectedAgendamento && (
+        <div className={styles.details}>
+          <h3>Detalhes do Agendamento</h3>
+          <p><strong>Serviço:</strong> {selectedAgendamento.servico}</p>
+          <p><strong>Criança:</strong> {selectedAgendamento.nomeCrianca}</p>
+          <p><strong>Funcionária:</strong> {selectedAgendamento.funcionaria}</p>
+          <p><strong>Hora:</strong> {selectedAgendamento.hora}</p>
+          <p><strong>Usuário:</strong> {selectedAgendamento.usuarioNome} ({selectedAgendamento.usuarioEmail})</p>
+          <p><strong>Telefone:</strong> {selectedAgendamento.telefone}</p>
+          <p><strong>Status:</strong> {selectedAgendamento.status}</p>
+
+          {selectedAgendamento.status === 'agendado' && (
+            <button
+              className={styles.statusButton}
+              onClick={() => handleStatusChange(selectedAgendamento.id)}
+            >
+              Marcar como Concluído
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
