@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebaseConfig';
 
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { email, userId, date, service, time, funcionaria, nomeCrianca, isEdit, isDelete } = req.body;
