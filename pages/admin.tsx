@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, getDocs, doc, getDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { format, parseISO, isSameDay } from 'date-fns';
@@ -24,8 +24,18 @@ interface Agendamento {
   formaPagamento?: string;
 }
 
+interface Venda {
+  id: string;
+  data: string;
+  produto: string;
+  valor: number;
+  formaPagamento: string;
+  funcionaria: string;
+}
+
 const AdminPage = () => {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const [vendas, setVendas] = useState<Venda[]>([]);
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -33,6 +43,8 @@ const AdminPage = () => {
   const [error, setError] = useState('');
   const [valor, setValor] = useState<number | null>(null);
   const [formaPagamento, setFormaPagamento] = useState<string>('');
+  const [produto, setProduto] = useState<string>('');
+  const [funcionariaVenda, setFuncionariaVenda] = useState<string>('');
   const router = useRouter();
 
   const checkAdminStatus = async (uid: string) => {
@@ -90,13 +102,38 @@ const AdminPage = () => {
       setAgendamentos(fetchedAgendamentos);
     };
 
+    const fetchVendas = async () => {
+      const q = query(collection(firestore, 'vendas'));
+      const querySnapshot = await getDocs(q);
+      const fetchedVendas: Venda[] = [];
+
+      for (const docSnap of querySnapshot.docs) {
+        const vendaData = docSnap.data();
+        fetchedVendas.push({
+          id: docSnap.id,
+          data: vendaData.data,
+          produto: vendaData.produto,
+          valor: vendaData.valor,
+          formaPagamento: vendaData.formaPagamento,
+          funcionaria: vendaData.funcionaria,
+        });
+      }
+
+      setVendas(fetchedVendas);
+    };
+
     if (user) {
       fetchAgendamentos();
+      fetchVendas();
     }
   }, [user]);
 
   const agendamentosDoDia = agendamentos.filter((agendamento) =>
     selectedDate ? isSameDay(parseISO(agendamento.data), selectedDate) : false
+  );
+
+  const vendasDoDia = vendas.filter((venda) =>
+    selectedDate ? isSameDay(parseISO(venda.data), selectedDate) : false
   );
 
   const handleDateChange = (date: Date) => {
@@ -155,6 +192,49 @@ const AdminPage = () => {
         },
         { cartao: 0, pix: 0, dinheiro: 0 }
       );
+  };
+
+  const calcularTotaisVendasPorFormaPagamento = (funcionaria: string) => {
+    return vendasDoDia
+      .filter((venda) => venda.funcionaria === funcionaria)
+      .reduce(
+        (totais, venda) => {
+          if (venda.formaPagamento) {
+            totais[venda.formaPagamento] += venda.valor || 0;
+          }
+          return totais;
+        },
+        { cartao: 0, pix: 0, dinheiro: 0 }
+      );
+  };
+
+  const handleRegistrarVenda = async () => {
+    if (!produto || !valor || !formaPagamento || !funcionariaVenda || !selectedDate) {
+      setError('Preencha todos os campos para registrar a venda.');
+      return;
+    }
+
+    try {
+      const novaVenda: Venda = {
+        id: '', // Temporary id, will be replaced after addDoc
+        data: format(selectedDate, 'yyyy-MM-dd'), // Usa a data selecionada no calendário
+        produto,
+        valor,
+        formaPagamento,
+        funcionaria: funcionariaVenda,
+      };
+
+      const docRef = await addDoc(collection(firestore, 'vendas'), novaVenda);
+      const vendaComId = { ...novaVenda, id: docRef.id }; // Define o ID após a criação do documento
+      setVendas((prevVendas) => [...prevVendas, vendaComId]);
+      setProduto('');
+      setValor(null);
+      setFormaPagamento('');
+      setFuncionariaVenda('');
+      setError('');
+    } catch (error) {
+      setError('Erro ao registrar a venda.');
+    }
   };
 
   if (isLoading) {
@@ -250,6 +330,75 @@ const AdminPage = () => {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      <div className={styles.vendasContainer}>
+        <h2>Registrar Venda de Produto</h2>
+        <div className={styles.vendaForm}>
+          <select
+            value={produto}
+            onChange={(e) => setProduto(e.target.value)}
+          >
+            <option value="">Selecione o Produto</option>
+            <option value="esmaltação">Esmaltação</option>
+            <option value="hidratação">Hidratação</option>
+          </select>
+          <input
+            type="number"
+            placeholder="Valor"
+            value={valor || ''}
+            onChange={(e) => setValor(parseFloat(e.target.value))}
+          />
+          <select
+            value={formaPagamento}
+            onChange={(e) => setFormaPagamento(e.target.value)}
+          >
+            <option value="">Selecione a Forma de Pagamento</option>
+            <option value="cartao">Cartão</option>
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+          </select>
+          <select
+            value={funcionariaVenda}
+            onChange={(e) => setFuncionariaVenda(e.target.value)}
+          >
+            <option value="">Selecione a Funcionária</option>
+            <option value="Frida">Frida</option>
+            <option value="Ana">Ana</option>
+            <option value="Anaely">Anaely</option>
+          </select>
+          <button onClick={handleRegistrarVenda}>Registrar Venda</button>
+        </div>
+        {error && <p className={styles.error}>{error}</p>}
+      </div>
+
+      {selectedDate && (
+        <div className={styles.vendasContainer}>
+          {['Frida', 'Ana', 'Anaely'].map((funcionaria) => {
+            const totaisVendas = calcularTotaisVendasPorFormaPagamento(funcionaria);
+
+            return (
+              <div key={funcionaria} className={styles.funcionariaColumn}>
+                <h3>Vendas de {funcionaria}</h3>
+                <div className={styles.totais}>
+                  <h4>Totais por Forma de Pagamento</h4>
+                  <p><strong>Cartão:</strong> R$ {totaisVendas.cartao.toFixed(2)}</p>
+                  <p><strong>Pix:</strong> R$ {totaisVendas.pix.toFixed(2)}</p>
+                  <p><strong>Dinheiro:</strong> R$ {totaisVendas.dinheiro.toFixed(2)}</p>
+                </div>
+                <ul className={styles.vendaList}>
+                  {vendasDoDia
+                    .filter((venda) => venda.funcionaria === funcionaria)
+                    .map((venda) => (
+                      <li key={venda.id} className={styles.vendaItem}>
+                        <strong>{venda.produto}</strong> - R$ {venda.valor.toFixed(2)} ({venda.formaPagamento})
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
