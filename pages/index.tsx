@@ -40,43 +40,44 @@ const Index = () => {
 
   const router = useRouter();
 
+  const fetchAvailableTimes = async (date: Date | null, funcionaria: string) => {
+    if (!date || !funcionaria) return;
+
+    try {
+      const appointmentsQuery = query(
+        collection(firestore, 'agendamentos'),
+        where('data', '==', format(date, 'yyyy-MM-dd')),
+        where('funcionaria', '==', funcionaria)
+      );
+
+      const appointmentDocs = await getDocs(appointmentsQuery);
+      const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().hora);
+
+      const now = new Date();
+      const allTimes = user?.tipo === 'admin' ? [...standardTimes, ...adminTimes] : standardTimes;
+
+      const filteredTimes = allTimes.filter((time) => {
+        if (bookedTimes.includes(time.trim())) return false;
+
+        if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
+          const [hours, minutes] = time.split(':');
+          const appointmentTime = new Date();
+          appointmentTime.setHours(parseInt(hours));
+          appointmentTime.setMinutes(parseInt(minutes));
+          return appointmentTime > now;
+        }
+        return true;
+      });
+
+      setAvailableTimes(filteredTimes);
+    } catch (error) {
+      console.error('Erro ao buscar horários disponíveis:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchAvailableTimes = async () => {
-      if (!selectedDate) return;
-
-      try {
-        const appointmentsQuery = query(
-          collection(firestore, 'agendamentos'),
-          where('data', '==', format(selectedDate, 'yyyy-MM-dd')),
-        );
-
-        const appointmentDocs = await getDocs(appointmentsQuery);
-        const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().hora);
-
-        const now = new Date();
-        const allTimes = user?.tipo === 'admin' ? [...standardTimes, ...adminTimes] : standardTimes;
-
-        const filteredTimes = allTimes.filter((time) => {
-          if (bookedTimes.includes(time.trim())) return false;
-
-          if (format(selectedDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
-            const [hours, minutes] = time.split(':');
-            const appointmentTime = new Date();
-            appointmentTime.setHours(parseInt(hours));
-            appointmentTime.setMinutes(parseInt(minutes));
-            return appointmentTime > now;
-          }
-          return true;
-        });
-
-        setAvailableTimes(filteredTimes);
-      } catch (error) {
-        console.error('Erro ao buscar horários disponíveis:', error);
-      }
-    };
-
-    fetchAvailableTimes();
-  }, [selectedDate, user]);
+    fetchAvailableTimes(selectedDate, appointmentData.funcionaria);
+  }, [selectedDate, appointmentData.funcionaria, user]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -252,7 +253,10 @@ const Index = () => {
                 <select
                   name="funcionaria"
                   value={appointmentData.funcionaria}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    fetchAvailableTimes(selectedDate, e.target.value); // Atualizar horários disponíveis ao selecionar funcionária
+                  }}
                   required
                   className={styles.inputoption}
                 >

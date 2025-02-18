@@ -143,15 +143,19 @@ const AdminPage = () => {
     setFormaPagamento('');
   };
 
-  const totalPorFormaPagamento = agendamentosDoDia.reduce(
-    (totais, agendamento) => {
-      if (agendamento.formaPagamento) {
-        totais[agendamento.formaPagamento] += agendamento.valor || 0;
-      }
-      return totais;
-    },
-    { cartao: 0, pix: 0, dinheiro: 0 }
-  );
+  const calcularTotaisPorFormaPagamento = (funcionaria: string) => {
+    return agendamentosDoDia
+      .filter((agendamento) => agendamento.funcionaria === funcionaria)
+      .reduce(
+        (totais, agendamento) => {
+          if (agendamento.formaPagamento) {
+            totais[agendamento.formaPagamento] += agendamento.valor || 0;
+          }
+          return totais;
+        },
+        { cartao: 0, pix: 0, dinheiro: 0 }
+      );
+  };
 
   if (isLoading) {
     return <div className={styles.loading}>Carregando...</div>;
@@ -178,6 +182,7 @@ const AdminPage = () => {
         <div className={styles.agendamentoContainer}>
           {['Frida', 'Ana'].map((funcionaria) => {
             const agendamentosFuncionaria = getAgendamentosPorFuncionaria(funcionaria);
+            const totais = calcularTotaisPorFormaPagamento(funcionaria);
 
             return (
               <div key={funcionaria} className={styles.funcionariaColumn}>
@@ -197,6 +202,12 @@ const AdminPage = () => {
                 ) : (
                   <p>Sem agendamentos</p>
                 )}
+                <div className={styles.totais}>
+                  <h4>Totais por Forma de Pagamento</h4>
+                  <p><strong>Cartão:</strong> R$ {totais.cartao.toFixed(2)}</p>
+                  <p><strong>Pix:</strong> R$ {totais.pix.toFixed(2)}</p>
+                  <p><strong>Dinheiro:</strong> R$ {totais.dinheiro.toFixed(2)}</p>
+                </div>
               </div>
             );
           })}
@@ -239,15 +250,6 @@ const AdminPage = () => {
               </button>
             </div>
           )}
-        </div>
-      )}
-
-      {selectedDate && (
-        <div className={styles.totais}>
-          <h3>Totais por Forma de Pagamento do Dia</h3>
-          <p><strong>Cartão:</strong> R$ {totalPorFormaPagamento.cartao.toFixed(2)}</p>
-          <p><strong>Pix:</strong> R$ {totalPorFormaPagamento.pix.toFixed(2)}</p>
-          <p><strong>Dinheiro:</strong> R$ {totalPorFormaPagamento.dinheiro.toFixed(2)}</p>
         </div>
       )}
     </div>

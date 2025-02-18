@@ -43,35 +43,30 @@ const Agendamentos = () => {
 
   useEffect(() => {
     if (editingAgendamento) {
-      const fetchAvailableTimes = async () => {
-        const appointmentsQuery = query(collection(firestore, 'agendamentos'));
-        const appointmentDocs = await getDocs(appointmentsQuery);
-
-        const bookedTimes = appointmentDocs.docs
-          .map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              data: data.data,
-              hora: data.hora,
-              funcionaria: data.funcionaria,
-            };
-          })
-          .filter(
-            (item) =>
-              item.id !== editingAgendamento.id && // Excluir o agendamento atual em edição
-              item.data === editingAgendamento.data && // Mesma data
-              item.funcionaria === editingAgendamento.funcionaria // Mesma funcionária
-          )
-          .map((item) => item.hora);
-
-        const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
-        setAvailableTimes(filteredTimes);
-      };
-
-      fetchAvailableTimes();
+      fetchAvailableTimes(editingAgendamento.data, editingAgendamento.funcionaria);
     }
   }, [editingAgendamento?.data, editingAgendamento?.funcionaria]);
+
+  const fetchAvailableTimes = async (date: string, funcionaria: string) => {
+    if (!date || !funcionaria) return;
+
+    try {
+      const appointmentsQuery = query(
+        collection(firestore, 'agendamentos'),
+        where('data', '==', date),
+        where('funcionaria', '==', funcionaria)
+      );
+
+      const appointmentDocs = await getDocs(appointmentsQuery);
+      const bookedTimes = appointmentDocs.docs
+        .map((doc) => doc.data().hora);
+
+      const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
+      setAvailableTimes(filteredTimes);
+    } catch (error) {
+      console.error('Erro ao buscar horários disponíveis:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchAgendamentos = async () => {
@@ -193,31 +188,7 @@ const Agendamentos = () => {
 
   const handleEdit = async (agendamento: Agendamento) => {
     setEditingAgendamento(agendamento);
-
-    // Buscar todos os horários agendados, exceto o agendamento atual
-    const appointmentsQuery = query(collection(firestore, 'agendamentos'));
-    const appointmentDocs = await getDocs(appointmentsQuery);
-
-    const bookedTimes = appointmentDocs.docs
-      .map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          data: data.data,
-          hora: data.hora,
-          funcionaria: data.funcionaria,
-        };
-      })
-      .filter(
-        (item) =>
-          item.id !== agendamento.id && // Excluir o agendamento atual em edição
-          item.data === agendamento.data && // Mesma data
-          item.funcionaria === agendamento.funcionaria // Mesma funcionária
-      )
-      .map((item) => item.hora);
-
-    const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
-    setAvailableTimes(filteredTimes);
+    fetchAvailableTimes(agendamento.data, agendamento.funcionaria);
   };
 
   const handleSaveEdit = async () => {
@@ -383,12 +354,13 @@ const Agendamentos = () => {
                   </select>
                   <select
                     value={editingAgendamento.funcionaria}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setEditingAgendamento({
                         ...editingAgendamento,
                         funcionaria: e.target.value,
-                      })
-                    }
+                      });
+                      fetchAvailableTimes(editingAgendamento.data, e.target.value); // Atualizar horários disponíveis ao selecionar funcionária
+                    }}
                   >
                     <option value="" disabled>
                       Selecione a Funcionária
