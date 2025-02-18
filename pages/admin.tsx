@@ -342,7 +342,14 @@ const AdminPage = () => {
           >
             <option value="">Selecione o Produto</option>
             <option value="esmaltação">Esmaltação</option>
-            <option value="hidratação">Hidratação</option>
+            <option value="shampoo">Shampoo</option>
+            <option value="condicionador">Condicionador</option>
+            <option value="cachos leavein">Cachos Leavein</option>
+            <option value="leavein spray">Leavein Spray</option>
+            <option value="queratan">Queratan</option>
+            <option value="pomada">Pomada</option>
+            <option value="bastão">Bastão</option>
+            <option value="ampola">Ampola</option>
           </select>
           <input
             type="number"
@@ -366,7 +373,7 @@ const AdminPage = () => {
             <option value="">Selecione a Funcionária</option>
             <option value="Frida">Frida</option>
             <option value="Ana">Ana</option>
-            <option value="Anaely">Anaely</option>
+            <option value="Naely">Naely</option>
           </select>
           <button onClick={handleRegistrarVenda}>Registrar Venda</button>
         </div>
@@ -375,7 +382,7 @@ const AdminPage = () => {
 
       {selectedDate && (
         <div className={styles.vendasContainer}>
-          {['Frida', 'Ana', 'Anaely'].map((funcionaria) => {
+          {['Frida', 'Ana', 'Naely'].map((funcionaria) => {
             const totaisVendas = calcularTotaisVendasPorFormaPagamento(funcionaria);
 
             return (
