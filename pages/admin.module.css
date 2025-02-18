@@ -211,3 +211,121 @@
   background-color: #0070f3;
   transform: translateY(1px);
 }
+/* Formulário de Conclusão de Agendamento */
+.conclusaoForm {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.conclusaoForm input,
+.conclusaoForm select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.conclusaoForm input:focus,
+.conclusaoForm select:focus {
+  outline: none;
+  border-color: #0070f3;
+  box-shadow: 0 0 5px rgba(0, 112, 243, 0.5);
+}
+
+/* Totais por Forma de Pagamento */
+.totais {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.totais h3 {
+  font-size: 24px;
+  color: #0070f3;
+  margin-bottom: 15px;
+}
+
+.totais p {
+  margin: 8px 0;
+  font-size: 18px;
+  color: #555;
+}
+/* Estilização dos Inputs e Select para Pagamento */
+.details input,
+.details select {
+  width: 40%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease;
+  text-align: center;
+}
+
+.details input:focus,
+.details select:focus {
+  border-color: #0070f3;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 112, 243, 0.5);
+}
+
+/* Botão para Concluir Pagamento */
+.statusButton {
+  background-color: #0070f3;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 10px;
+  display: block;
+  width: 100%;
+}
+
+.statusButton:hover {
+  background-color: #0b57ae;
+  transform: translateY(-3px);
+}
+
+.statusButton:active {
+  background-color: #0070f3;
+  transform: translateY(1px);
+}
+
+/* Totais por Forma de Pagamento */
+.totais {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.totais h3 {
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.totais p {
+  font-size: 18px;
+  color: #0070f3;
+  font-weight: bold;
+}

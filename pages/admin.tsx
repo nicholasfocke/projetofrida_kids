@@ -20,6 +20,8 @@ interface Agendamento {
   usuarioEmail: string;
   usuarioNome: string;
   telefone: string;
+  valor?: number;
+  formaPagamento?: string;
 }
 
 const AdminPage = () => {
@@ -29,6 +31,8 @@ const AdminPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
   const [error, setError] = useState('');
+  const [valor, setValor] = useState<number | null>(null);
+  const [formaPagamento, setFormaPagamento] = useState<string>('');
   const router = useRouter();
 
   const checkAdminStatus = async (uid: string) => {
@@ -78,6 +82,8 @@ const AdminPage = () => {
           usuarioEmail: userDoc.exists() ? userDoc.data()?.email : '',
           usuarioNome: userDoc.exists() ? userDoc.data()?.nome : '',
           telefone: userDoc.exists() ? userDoc.data()?.telefone : '',
+          valor: agendamentoData.valor || null,
+          formaPagamento: agendamentoData.formaPagamento || '',
         });
       }
 
@@ -100,6 +106,8 @@ const AdminPage = () => {
 
   const handleAgendamentoClick = (agendamento: Agendamento) => {
     setSelectedAgendamento(agendamento);
+    setValor(agendamento.valor || null);
+    setFormaPagamento(agendamento.formaPagamento || '');
   };
 
   const sortAgendamentosByTime = (agendamentos: Agendamento[]) =>
@@ -110,27 +118,40 @@ const AdminPage = () => {
       agendamentosDoDia.filter((agendamento) => agendamento.funcionaria === funcionaria)
     );
 
-  const handleStatusChange = async (agendamentoId: string) => {
+  const handleConcluirAgendamento = async (agendamentoId: string) => {
     if (!user || user.tipo !== 'admin') {
       setError('Você não tem permissão para alterar o status deste agendamento.');
       return;
     }
 
     const agendamentoRef = doc(firestore, 'agendamentos', agendamentoId);
-    await updateDoc(agendamentoRef, { status: 'concluído' });
+    await updateDoc(agendamentoRef, { status: 'concluído', valor, formaPagamento });
 
     setAgendamentos((prevAgendamentos) =>
       prevAgendamentos.map((agendamento) =>
         agendamento.id === agendamentoId
-          ? { ...agendamento, status: 'concluído' }
+          ? { ...agendamento, status: 'concluído', valor, formaPagamento }
           : agendamento
       )
     );
 
     if (selectedAgendamento && selectedAgendamento.id === agendamentoId) {
-      setSelectedAgendamento({ ...selectedAgendamento, status: 'concluído' });
+      setSelectedAgendamento({ ...selectedAgendamento, status: 'concluído', valor, formaPagamento });
     }
+
+    setValor(null);
+    setFormaPagamento('');
   };
+
+  const totalPorFormaPagamento = agendamentosDoDia.reduce(
+    (totais, agendamento) => {
+      if (agendamento.formaPagamento) {
+        totais[agendamento.formaPagamento] += agendamento.valor || 0;
+      }
+      return totais;
+    },
+    { cartao: 0, pix: 0, dinheiro: 0 }
+  );
 
   if (isLoading) {
     return <div className={styles.loading}>Carregando...</div>;
@@ -194,13 +215,39 @@ const AdminPage = () => {
           <p><strong>Status:</strong> {selectedAgendamento.status}</p>
 
           {selectedAgendamento.status === 'agendado' && (
-            <button
-              className={styles.statusButton}
-              onClick={() => handleStatusChange(selectedAgendamento.id)}
-            >
-              Marcar como Concluído
-            </button>
+            <div className={styles.conclusaoForm}>
+              <input
+                type="number"
+                placeholder="Valor do Corte"
+                value={valor || ''}
+                onChange={(e) => setValor(parseFloat(e.target.value))}
+              />
+              <select
+                value={formaPagamento}
+                onChange={(e) => setFormaPagamento(e.target.value)}
+              >
+                <option value="">Selecione a Forma de Pagamento</option>
+                <option value="cartao">Cartão</option>
+                <option value="pix">Pix</option>
+                <option value="dinheiro">Dinheiro</option>
+              </select>
+              <button
+                className={styles.statusButton}
+                onClick={() => handleConcluirAgendamento(selectedAgendamento.id)}
+              >
+                Marcar como Concluído
+              </button>
+            </div>
           )}
+        </div>
+      )}
+
+      {selectedDate && (
+        <div className={styles.totais}>
+          <h3>Totais por Forma de Pagamento do Dia</h3>
+          <p><strong>Cartão:</strong> R$ {totalPorFormaPagamento.cartao.toFixed(2)}</p>
+          <p><strong>Pix:</strong> R$ {totalPorFormaPagamento.pix.toFixed(2)}</p>
+          <p><strong>Dinheiro:</strong> R$ {totalPorFormaPagamento.dinheiro.toFixed(2)}</p>
         </div>
       )}
     </div>
