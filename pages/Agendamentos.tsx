@@ -4,7 +4,7 @@ import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração 
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import { useRouter } from 'next/router'; // Para redirecionamento
 import styles from './agendamentos.module.css'; // Estilos personalizados
-import { format, isAfter, addMinutes, parseISO } from 'date-fns'; // Manipulação de datas
+import { format, parseISO } from 'date-fns'; // Manipulação de datas
 import { ptBR } from 'date-fns/locale'; // Locale para português
 
 interface Agendamento {
@@ -110,35 +110,6 @@ const Agendamentos = () => {
   
     fetchAgendamentos();
   }, [user]);
-
-  useEffect(() => {
-    const checkAgendamentos = async () => {
-      const now = new Date();
-      agendamentos.forEach(async (agendamento) => {
-        const agendamentoDateTime = new Date(`${agendamento.data}T${agendamento.hora}`);
-        const thirtyMinutesLater = addMinutes(agendamentoDateTime, 30);
-
-        if (isAfter(now, thirtyMinutesLater) && agendamento.status === 'agendado') {
-          try {
-            const agendamentoRef = doc(firestore, 'agendamentos', agendamento.id);
-            await updateDoc(agendamentoRef, {
-              status: 'concluído',
-            });
-
-            setAgendamentos((prev) => prev.filter((item) => item.id !== agendamento.id));
-          } catch (error) {
-            console.error('Erro ao atualizar o status do agendamento: ', error);
-          }
-        }
-      });
-    };
-
-    if (agendamentos.length > 0) {
-      const intervalId = setInterval(checkAgendamentos, 60000);
-
-      return () => clearInterval(intervalId);
-    }
-  }, [agendamentos]);
 
   const handleRemove = async (id: string) => {
     const agendamentoToDelete = agendamentos.find((agendamento) => agendamento.id === id);

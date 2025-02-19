@@ -27,8 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Formatar a data para padrão brasileiro (DD/MM/YYYY)
       const [year, month, day] = date.split('-').map(Number);
-      const localDate = new Date(Date.UTC(year, month - 1, day));
-      localDate.setUTCDate(localDate.getUTCDate() + 1);
+      const localDate = new Date(year, month - 1, day);
       const formattedDate = localDate.toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
