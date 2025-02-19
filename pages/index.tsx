@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import Modal from 'react-modal';
 import 'react-calendar/dist/Calendar.css';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import styles from './index.module.css';
@@ -27,6 +27,7 @@ const Index = () => {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [blockedDays, setBlockedDays] = useState<string[]>([]);
 
   const standardTimes = [
     '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -75,6 +76,17 @@ const Index = () => {
     }
   };
 
+  const fetchBlockedDays = async () => {
+    try {
+      const blockedDaysQuery = query(collection(firestore, 'blockedDays'));
+      const blockedDaysSnapshot = await getDocs(blockedDaysQuery);
+      const fetchedBlockedDays = blockedDaysSnapshot.docs.map((doc) => doc.data().date);
+      setBlockedDays(fetchedBlockedDays);
+    } catch (error) {
+      console.error('Erro ao buscar dias bloqueados:', error);
+    }
+  };
+
   useEffect(() => {
     fetchAvailableTimes(selectedDate, appointmentData.funcionaria);
   }, [selectedDate, appointmentData.funcionaria, user]);
@@ -104,6 +116,8 @@ const Index = () => {
       }
     });
 
+    fetchBlockedDays();
+
     return () => unsubscribe();
   }, [router]);
 
@@ -120,19 +134,20 @@ const Index = () => {
     const isSunday = date.getDay() === 0;
     const isPastDay = format(date, 'yyyy-MM-dd') < format(today, 'yyyy-MM-dd');
     const isNotCurrentYear = getYear(date) !== getYear(today);
+    const isBlockedDay = blockedDays.includes(format(date, 'yyyy-MM-dd'));
 
-    // Permitir que administradores agendem em qualquer dia
+    // Permitir que administradores agendem em qualquer dia, mas destacar dias bloqueados
     if (user?.tipo === 'admin') {
       return !isPastDay && !isNotCurrentYear;
     }
 
-    // Bloquear domingos, segundas e datas passadas para usuários comuns
-    return !isPastDay && !isMonday && !isSunday && !isNotCurrentYear;
+    // Bloquear domingos, segundas, datas passadas e dias bloqueados para usuários comuns
+    return !isPastDay && !isMonday && !isSunday && !isNotCurrentYear && !isBlockedDay;
   };
 
   const handleDateClick = (date: Date) => {
     if (!isDateValid(date)) {
-      setError('Você não pode agendar para datas passadas, domingos, segundas ou anos fora do atual.');
+      setError('Você não pode agendar para datas passadas, domingos, segundas, anos fora do atual ou dias bloqueados.');
       setSelectedDate(null);
       return;
     }
@@ -212,6 +227,20 @@ const Index = () => {
     }
   };
 
+  const handleBlockDay = async () => {
+    if (!selectedDate) return;
+
+    try {
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      await setDoc(doc(firestore, 'blockedDays', formattedDate), { date: formattedDate });
+      setBlockedDays((prev) => [...prev, formattedDate]);
+      setError('');
+    } catch (error) {
+      console.error('Erro ao bloquear o dia:', error);
+      setError('Erro ao bloquear o dia. Tente novamente.');
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className={styles.container}>
@@ -224,7 +253,18 @@ const Index = () => {
             onClickDay={handleDateClick}
             value={selectedDate}
             tileDisabled={({ date }) => !isDateValid(date)}
+            tileClassName={({ date, view }) =>
+              view === 'month' && blockedDays.includes(format(date, 'yyyy-MM-dd'))
+                ? styles.blockedDay
+                : ''
+            }
           />
+
+          {user?.tipo === 'admin' && selectedDate && (
+            <button onClick={handleBlockDay} className={styles.blockButton}>
+              Bloquear Dia
+            </button>
+          )}
 
           <Modal
             isOpen={modalIsOpen}

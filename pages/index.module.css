@@ -234,3 +234,23 @@
     padding: 8px 15px;
   }
 }
+.blockButton {
+  background-color: #ff4d4d; /* Cor de fundo vermelha */
+  color: white; /* Cor do texto branca */
+  border: none; /* Sem borda */
+  padding: 10px 20px; /* Espaçamento interno */
+  font-size: 16px; /* Tamanho da fonte */
+  cursor: pointer; /* Cursor de ponteiro ao passar o mouse */
+  border-radius: 5px; /* Bordas arredondadas */
+  margin-top: 10px; /* Margem superior */
+  transition: background-color 0.3s ease; /* Transição suave para a cor de fundo */
+}
+
+.blockButton:hover {
+  background-color: #ff1a1a; /* Cor de fundo ao passar o mouse */
+}
+
+.blockedDay {
+  background-color: #ffcccc !important; /* Cor de fundo para dias bloqueados */
+  color: #ff0000 !important; /* Cor do texto para dias bloqueados */
+}

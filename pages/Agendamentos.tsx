@@ -76,7 +76,7 @@ const Agendamentos = () => {
           where('usuarioId', '==', user.uid),
           where('status', '==', 'agendado')
         );
-
+  
         try {
           const querySnapshot = await getDocs(q);
           const fetchedAgendamentos: Agendamento[] = [];
@@ -92,6 +92,14 @@ const Agendamentos = () => {
               funcionaria: agendamentoData.funcionaria || '',
             });
           });
+  
+          // Ordenar agendamentos por data e hora em ordem crescente
+          fetchedAgendamentos.sort((a, b) => {
+            const dateA = new Date(`${a.data}T${a.hora}`);
+            const dateB = new Date(`${b.data}T${b.hora}`);
+            return dateA.getTime() - dateB.getTime();
+          });
+  
           setAgendamentos(fetchedAgendamentos);
           setLoading(false);
         } catch (error) {
@@ -99,7 +107,7 @@ const Agendamentos = () => {
         }
       }
     };
-
+  
     fetchAgendamentos();
   }, [user]);
 
