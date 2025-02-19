@@ -378,7 +378,7 @@
 .vendaForm select,
 .vendaForm input,
 .vendaForm button {
-  flex: 1 1 18%; /* Ajusta a largura dos elementos para que ocupem a mesma proporção */
+  width: 100%; /* Ajusta a largura dos elementos para que ocupem 100% */
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -423,12 +423,18 @@
 
   .vendasContainer .funcionariaColumn {
     width: 100%;
-    max-width: 90%; /* Reduz a largura dos elementos no mobile */
+    max-width: 80%; /* Reduz a largura dos elementos no mobile */
+  }
+
+  .vendaForm {
+    flex-direction: column;
+    align-items: center;
   }
 
   .vendaForm select,
   .vendaForm input,
   .vendaForm button {
-    flex: 1 1 90%; /* Ajusta a largura dos elementos para ocupar 90% no mobile */
+    width: 100%; /* Ajusta a largura dos elementos para ocupar 100% no mobile */
+    max-width: 300px; /* Define uma largura máxima para os elementos */
   }
 }
