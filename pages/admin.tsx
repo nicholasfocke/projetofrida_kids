@@ -350,6 +350,7 @@ const AdminPage = () => {
             <option value="pomada">Pomada</option>
             <option value="bastão">Bastão</option>
             <option value="ampola">Ampola</option>
+            <option value="Corte de cabelo (caso o marcar como concluido dê erro)">Corte de cabelo (caso o marcar como concluido dê erro)</option>
           </select>
           <input
             type="number"
