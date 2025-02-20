@@ -7,6 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import Modal from 'react-modal';
 import styles from './admin.module.css';
 
 interface Agendamento {
@@ -45,6 +46,7 @@ const AdminPage = () => {
   const [formaPagamento, setFormaPagamento] = useState<string>('');
   const [produto, setProduto] = useState<string>('');
   const [funcionariaVenda, setFuncionariaVenda] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
   const checkAdminStatus = async (uid: string) => {
@@ -145,6 +147,12 @@ const AdminPage = () => {
     setSelectedAgendamento(agendamento);
     setValor(agendamento.valor || null);
     setFormaPagamento(agendamento.formaPagamento || '');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedAgendamento(null);
   };
 
   const sortAgendamentosByTime = (agendamentos: Agendamento[]) =>
@@ -294,44 +302,52 @@ const AdminPage = () => {
         </div>
       )}
 
-      {selectedAgendamento && (
-        <div className={styles.details}>
-          <h3>Detalhes do Agendamento</h3>
-          <p><strong>Serviço:</strong> {selectedAgendamento.servico}</p>
-          <p><strong>Criança:</strong> {selectedAgendamento.nomeCrianca}</p>
-          <p><strong>Funcionária:</strong> {selectedAgendamento.funcionaria}</p>
-          <p><strong>Hora:</strong> {selectedAgendamento.hora}</p>
-          <p><strong>Usuário:</strong> {selectedAgendamento.usuarioNome} ({selectedAgendamento.usuarioEmail})</p>
-          <p><strong>Telefone:</strong> {selectedAgendamento.telefone}</p>
-          <p><strong>Status:</strong> {selectedAgendamento.status}</p>
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Detalhes do Agendamento"
+        className={styles.modal}
+        overlayClassName={styles.overlay}
+      >
+        {selectedAgendamento && (
+          <div className={styles.details}>
+            <h3>Detalhes do Agendamento</h3>
+            <p><strong>Serviço:</strong> {selectedAgendamento.servico}</p>
+            <p><strong>Criança:</strong> {selectedAgendamento.nomeCrianca}</p>
+            <p><strong>Funcionária:</strong> {selectedAgendamento.funcionaria}</p>
+            <p><strong>Hora:</strong> {selectedAgendamento.hora}</p>
+            <p><strong>Usuário:</strong> {selectedAgendamento.usuarioNome} ({selectedAgendamento.usuarioEmail})</p>
+            <p><strong>Telefone:</strong> {selectedAgendamento.telefone}</p>
+            <p><strong>Status:</strong> {selectedAgendamento.status}</p>
 
-          {selectedAgendamento.status === 'agendado' && (
-            <div className={styles.conclusaoForm}>
-              <input
-                type="number"
-                placeholder="Valor do Corte"
-                value={valor || ''}
-                onChange={(e) => setValor(parseFloat(e.target.value))}
-              />
-              <select
-                value={formaPagamento}
-                onChange={(e) => setFormaPagamento(e.target.value)}
-              >
-                <option value="">Selecione a Forma de Pagamento</option>
-                <option value="cartao">Cartão</option>
-                <option value="pix">Pix</option>
-                <option value="dinheiro">Dinheiro</option>
-              </select>
-              <button
-                className={styles.statusButton}
-                onClick={() => handleConcluirAgendamento(selectedAgendamento.id)}
-              >
-                Marcar como Concluído
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            {selectedAgendamento.status === 'agendado' && (
+              <div className={styles.conclusaoForm}>
+                <input
+                  type="number"
+                  placeholder="Valor do Corte"
+                  value={valor || ''}
+                  onChange={(e) => setValor(parseFloat(e.target.value))}
+                />
+                <select
+                  value={formaPagamento}
+                  onChange={(e) => setFormaPagamento(e.target.value)}
+                >
+                  <option value="">Selecione a Forma de Pagamento</option>
+                  <option value="cartao">Cartão</option>
+                  <option value="pix">Pix</option>
+                  <option value="dinheiro">Dinheiro</option>
+                </select>
+                <button
+                  className={styles.statusButton}
+                  onClick={() => handleConcluirAgendamento(selectedAgendamento.id)}
+                >
+                  Marcar como Concluído
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
 
       <div className={styles.vendasContainer}>
         <h2>Registrar Venda de Produto</h2>

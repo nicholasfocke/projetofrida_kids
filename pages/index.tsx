@@ -28,6 +28,7 @@ const Index = () => {
   const [error, setError] = useState('');
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [blockedDays, setBlockedDays] = useState<string[]>([]);
+  const [blockedTimes, setBlockedTimes] = useState<string[]>([]);
 
   const standardTimes = [
     '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -58,7 +59,7 @@ const Index = () => {
       const allTimes = user?.tipo === 'admin' ? [...standardTimes, ...adminTimes] : standardTimes;
 
       const filteredTimes = allTimes.filter((time) => {
-        if (bookedTimes.includes(time.trim())) return false;
+        if (bookedTimes.includes(time.trim()) || blockedTimes.includes(time.trim())) return false;
 
         if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
           const [hours, minutes] = time.split(':');
@@ -87,9 +88,23 @@ const Index = () => {
     }
   };
 
+  const fetchBlockedTimes = async (date: Date) => {
+    try {
+      const blockedTimesQuery = query(
+        collection(firestore, 'blockedTimes'),
+        where('date', '==', format(date, 'yyyy-MM-dd'))
+      );
+      const blockedTimesSnapshot = await getDocs(blockedTimesQuery);
+      const fetchedBlockedTimes = blockedTimesSnapshot.docs.map((doc) => doc.data().time);
+      setBlockedTimes(fetchedBlockedTimes);
+    } catch (error) {
+      console.error('Erro ao buscar horários bloqueados:', error);
+    }
+  };
+
   useEffect(() => {
     fetchAvailableTimes(selectedDate, appointmentData.funcionaria);
-  }, [selectedDate, appointmentData.funcionaria, user]);
+  }, [selectedDate, appointmentData.funcionaria, user, blockedTimes]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -159,6 +174,7 @@ const Index = () => {
     });
     setError('');
     setModalIsOpen(true); // Abre o modal
+    fetchBlockedTimes(date); // Buscar horários bloqueados para a data selecionada
   };
 
   const handleTimeClick = (time: string) => {
@@ -238,6 +254,23 @@ const Index = () => {
     } catch (error) {
       console.error('Erro ao bloquear o dia:', error);
       setError('Erro ao bloquear o dia. Tente novamente.');
+    }
+  };
+
+  const handleBlockTime = async () => {
+    if (!selectedDate || !appointmentData.time) return;
+
+    try {
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      await setDoc(doc(firestore, 'blockedTimes', `${formattedDate}_${appointmentData.time}`), {
+        date: formattedDate,
+        time: appointmentData.time,
+      });
+      setBlockedTimes((prev) => [...prev, appointmentData.time]);
+      setError('');
+    } catch (error) {
+      console.error('Erro ao bloquear o horário:', error);
+      setError('Erro ao bloquear o horário. Tente novamente.');
     }
   };
 
@@ -333,6 +366,12 @@ const Index = () => {
                   ))}
                 </div>
               </div>
+
+              {user?.tipo === 'admin' && appointmentData.time && (
+                <button type="button" onClick={handleBlockTime} className={styles.blockButton}>
+                  Bloquear Horário
+                </button>
+              )}
 
               <div className={styles.modalFooter}>
                 <button type="button" onClick={() => setModalIsOpen(false)} className={styles.buttonSecondary}>
