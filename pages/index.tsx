@@ -28,7 +28,7 @@ const Index = () => {
   const [error, setError] = useState('');
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [blockedDays, setBlockedDays] = useState<string[]>([]);
-  const [blockedTimes, setBlockedTimes] = useState<string[]>([]);
+  const [blockedTimes, setBlockedTimes] = useState<{ date: string, time: string, funcionaria: string }[]>([]);
 
   const standardTimes = [
     '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -59,7 +59,7 @@ const Index = () => {
       const allTimes = user?.tipo === 'admin' ? [...standardTimes, ...adminTimes] : standardTimes;
 
       const filteredTimes = allTimes.filter((time) => {
-        if (bookedTimes.includes(time.trim()) || blockedTimes.includes(time.trim())) return false;
+        if (bookedTimes.includes(time.trim()) || blockedTimes.some(blockedTime => blockedTime.time === time.trim() && blockedTime.funcionaria === funcionaria)) return false;
 
         if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
           const [hours, minutes] = time.split(':');
@@ -95,7 +95,7 @@ const Index = () => {
         where('date', '==', format(date, 'yyyy-MM-dd'))
       );
       const blockedTimesSnapshot = await getDocs(blockedTimesQuery);
-      const fetchedBlockedTimes = blockedTimesSnapshot.docs.map((doc) => doc.data().time);
+      const fetchedBlockedTimes = blockedTimesSnapshot.docs.map((doc) => doc.data() as { date: string, time: string, funcionaria: string });
       setBlockedTimes(fetchedBlockedTimes);
     } catch (error) {
       console.error('Erro ao buscar horários bloqueados:', error);
@@ -248,7 +248,9 @@ const Index = () => {
 
     try {
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-      await setDoc(doc(firestore, 'blockedDays', formattedDate), { date: formattedDate });
+      await setDoc(doc(firestore, 'blockedDays', formattedDate), {
+        date: formattedDate,
+      });
       setBlockedDays((prev) => [...prev, formattedDate]);
       setError('');
     } catch (error) {
@@ -258,15 +260,16 @@ const Index = () => {
   };
 
   const handleBlockTime = async () => {
-    if (!selectedDate || !appointmentData.time) return;
+    if (!selectedDate || !appointmentData.time || !appointmentData.funcionaria) return;
 
     try {
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-      await setDoc(doc(firestore, 'blockedTimes', `${formattedDate}_${appointmentData.time}`), {
+      await setDoc(doc(firestore, 'blockedTimes', `${formattedDate}_${appointmentData.time}_${appointmentData.funcionaria}`), {
         date: formattedDate,
         time: appointmentData.time,
+        funcionaria: appointmentData.funcionaria,
       });
-      setBlockedTimes((prev) => [...prev, appointmentData.time]);
+      setBlockedTimes((prev) => [...prev, { date: formattedDate, time: appointmentData.time, funcionaria: appointmentData.funcionaria }]);
       setError('');
     } catch (error) {
       console.error('Erro ao bloquear o horário:', error);
