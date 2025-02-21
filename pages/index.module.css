@@ -110,6 +110,26 @@
   z-index: 1001;
 }
 
+/* Ajuste melhorado para iPhone 13 e telas menores */
+@media (max-width: 480px) {
+  .modalContent {
+    width: 95%;
+    max-width: 400px;
+    padding: 15px;
+  }
+
+  .inputoption,
+  .inputnome {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
 .modalFooter {
   display: flex;
   justify-content: space-between;
@@ -222,7 +242,8 @@
     max-width: 100% !important;
   }
 
-  .inputoption, .inputnome {
+  .inputoption,
+  .inputnome {
     width: 100%;
   }
 
@@ -242,22 +263,22 @@
 }
 
 .blockButton {
-  background-color: #ff4d4d; /* Cor de fundo vermelha */
-  color: white; /* Cor do texto branca */
-  border: none; /* Sem borda */
-  padding: 10px 20px; /* Espaçamento interno */
-  font-size: 16px; /* Tamanho da fonte */
-  cursor: pointer; /* Cursor de ponteiro ao passar o mouse */
-  border-radius: 5px; /* Bordas arredondadas */
-  margin-top: 10px; /* Margem superior */
-  transition: background-color 0.3s ease; /* Transição suave para a cor de fundo */
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
 }
 
 .blockButton:hover {
-  background-color: #ff1a1a; /* Cor de fundo ao passar o mouse */
+  background-color: #ff1a1a;
 }
 
 .blockedDay {
-  background-color: #ffcccc !important; /* Cor de fundo para dias bloqueados */
-  color: #ff0000 !important; /* Cor do texto para dias bloqueados */
+  background-color: #ffcccc !important;
+  color: #ff0000 !important;
 }
