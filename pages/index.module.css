@@ -110,26 +110,6 @@
   z-index: 1001;
 }
 
-/* Ajuste melhorado para iPhone 13 e telas menores */
-@media (max-width: 480px) {
-  .modalContent {
-    width: 95%;
-    max-width: 400px;
-    padding: 15px;
-  }
-
-  .inputoption,
-  .inputnome {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  .button {
-    font-size: 14px;
-    padding: 10px;
-  }
-}
-
 .modalFooter {
   display: flex;
   justify-content: space-between;
@@ -242,8 +222,7 @@
     max-width: 100% !important;
   }
 
-  .inputoption,
-  .inputnome {
+  .inputoption, .inputnome {
     width: 100%;
   }
 
@@ -257,8 +236,50 @@
     padding: 20px;
   }
 
+  .modalFooter {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .buttonSecondary {
     padding: 8px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalContent {
+    max-width: 95%;
+    padding: 15px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .button {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .inputoption, .inputnome {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .timeButton {
+    width: 50px;
+    font-size: 10px;
+  }
+
+  .modalFooter {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .buttonSecondary {
+    padding: 6px 10px;
   }
 }
 
