@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { collection, query, getDocs, doc, getDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
-import { format, parseISO, isSameDay } from 'date-fns';
+import { format, parseISO, isSameDay, differenceInDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
@@ -75,30 +75,34 @@ const AdminPage = () => {
 
   useEffect(() => {
     const fetchAgendamentos = async () => {
-      const q = query(collection(firestore, 'agendamentos'));
+      const twoDaysAgo = subDays(new Date(), 2);
+      const q = query(collection(firestore, 'agendamentos'), where('data', '>=', format(twoDaysAgo, 'yyyy-MM-dd')));
       const querySnapshot = await getDocs(q);
       const fetchedAgendamentos: Agendamento[] = [];
 
       for (const docSnap of querySnapshot.docs) {
         const agendamentoData = docSnap.data();
+        const agendamentoDate = parseISO(agendamentoData.data);
 
-        const userDocRef = doc(firestore, 'users', agendamentoData.usuarioId);
-        const userDoc = await getDoc(userDocRef);
+        if (differenceInDays(new Date(), agendamentoDate) <= 2) {
+          const userDocRef = doc(firestore, 'users', agendamentoData.usuarioId);
+          const userDoc = await getDoc(userDocRef);
 
-        fetchedAgendamentos.push({
-          id: docSnap.id,
-          data: agendamentoData.data,
-          hora: agendamentoData.hora,
-          servico: agendamentoData.servico,
-          nomeCrianca: agendamentoData.nomeCrianca,
-          status: agendamentoData.status,
-          funcionaria: agendamentoData.funcionaria,
-          usuarioEmail: userDoc.exists() ? userDoc.data()?.email : '',
-          usuarioNome: userDoc.exists() ? userDoc.data()?.nome : '',
-          telefone: userDoc.exists() ? userDoc.data()?.telefone : '',
-          valor: agendamentoData.valor || null,
-          formaPagamento: agendamentoData.formaPagamento || '',
-        });
+          fetchedAgendamentos.push({
+            id: docSnap.id,
+            data: agendamentoData.data,
+            hora: agendamentoData.hora,
+            servico: agendamentoData.servico,
+            nomeCrianca: agendamentoData.nomeCrianca,
+            status: agendamentoData.status,
+            funcionaria: agendamentoData.funcionaria,
+            usuarioEmail: userDoc.exists() ? userDoc.data()?.email : '',
+            usuarioNome: userDoc.exists() ? userDoc.data()?.nome : '',
+            telefone: userDoc.exists() ? userDoc.data()?.telefone : '',
+            valor: agendamentoData.valor || null,
+            formaPagamento: agendamentoData.formaPagamento || '',
+          });
+        }
       }
 
       setAgendamentos(fetchedAgendamentos);
@@ -127,6 +131,26 @@ const AdminPage = () => {
     if (user) {
       fetchAgendamentos();
       fetchVendas();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const deleteOldAgendamentos = async () => {
+      const q = query(collection(firestore, 'agendamentos'));
+      const querySnapshot = await getDocs(q);
+
+      for (const docSnap of querySnapshot.docs) {
+        const agendamentoData = docSnap.data();
+        const agendamentoDate = parseISO(agendamentoData.data);
+
+        if (differenceInDays(new Date(), agendamentoDate) > 2) {
+          await deleteDoc(doc(firestore, 'agendamentos', docSnap.id));
+        }
+      }
+    };
+
+    if (user) {
+      deleteOldAgendamentos();
     }
   }, [user]);
 
