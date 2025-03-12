@@ -17,9 +17,9 @@ function MyApp({ Component, pageProps }) {
       <AuthProvider>
         <Layout>
           <Component {...pageProps} />
+          <Analytics /> {/* Movido para dentro da estrutura de renderização */}
         </Layout>
       </AuthProvider>
-      <Analytics />
     </>
   );
 }
