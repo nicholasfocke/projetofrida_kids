@@ -154,9 +154,9 @@ const Agendamentos = () => {
           userId: user?.uid,
           date: agendamento.data,
           service: agendamento.servico,
-          time: agendamento.hora,
+          times: [agendamento.hora],
           funcionaria: agendamento.funcionaria,
-          nomeCrianca: agendamento.nomeCrianca,
+          nomesCriancas: [agendamento.nomeCrianca],
           isDelete: true,
         }),
       });
@@ -267,9 +267,9 @@ const Agendamentos = () => {
           userId: user.uid,
           date: agendamento.data,
           service: agendamento.servico,
-          time: agendamento.hora,
+          times: [agendamento.hora],
           funcionaria: agendamento.funcionaria,
-          nomeCrianca: agendamento.nomeCrianca,
+          nomesCriancas: [agendamento.nomeCrianca],
           isEdit: true // Indicador de que o e-mail é de edição
         }),
       });

@@ -5,7 +5,7 @@ import { firestore } from '../../firebase/firebaseConfig';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { email, userId, date, service, time, funcionaria, nomeCrianca, isEdit, isDelete } = req.body;
+    const { email, userId, date, service, times, funcionaria, nomesCriancas, isEdit, isDelete } = req.body;
 
     if (!userId || !date) {
       return res.status(400).json({ message: 'userId e date são obrigatórios.' });
@@ -71,9 +71,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           <ul>
             <li><strong>Nome do usuário:</strong> ${userName}</li>
             <li><strong>Serviço:</strong> ${service}</li>
-            <li><strong>Criança:</strong> ${nomeCrianca}</li>
+            <li><strong>Crianças:</strong> ${nomesCriancas.join(', ')}</li>
             <li><strong>Data:</strong> ${formattedDate}</li>
-            <li><strong>Horário:</strong> ${time}</li>
+            <li><strong>Horários:</strong> ${times.join(', ')}</li>
             <li><strong>Funcionária:</strong> ${funcionaria}</li>
           </ul>
           <p>Se precisar de alguma alteração, entre em contato.</p>
@@ -89,9 +89,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           <ul>
             <li><strong>Nome do usuário:</strong> ${userName}</li>
             <li><strong>Serviço:</strong> ${service}</li>
-            <li><strong>Criança:</strong> ${nomeCrianca}</li>
+            <li><strong>Crianças:</strong> ${nomesCriancas.join(', ')}</li>
             <li><strong>Data:</strong> ${formattedDate}</li>
-            <li><strong>Horário:</strong> ${time}</li>
+            <li><strong>Horários:</strong> ${times.join(', ')}</li>
             <li><strong>Funcionária:</strong> ${funcionaria}</li>
             <li><strong>Telefone do usuário:</strong> ${userPhone}</li>
           </ul>

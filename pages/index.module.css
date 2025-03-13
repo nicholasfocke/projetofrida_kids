@@ -170,20 +170,20 @@
 .times {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px; /* Ajuste o espaçamento entre os botões */
   justify-content: center;
 }
 
 .timeButton {
-  padding: 10px 15px;
+  padding: 7px 15px; /* Ajuste o padding para diminuir o tamanho dos botões */
   border: 1px solid #ddd;
   background-color: white;
   color: #333;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 15px; /* Ajuste o tamanho da fonte */
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 75px;
+  width: 70px; /* Ajuste a largura dos botões */
 }
 
 .timeButton:hover {
@@ -227,8 +227,8 @@
   }
 
   .timeButton {
-    width: 60px;
-    font-size: 12px;
+    width: 50px; /* Ajuste a largura dos botões para dispositivos móveis */
+    font-size: 30px; /* Ajuste o tamanho da fonte para dispositivos móveis */
   }
 
   .modalContent {
@@ -268,8 +268,8 @@
   }
 
   .timeButton {
-    width: 50px;
-    font-size: 10px;
+    width: 50px; /* Ajuste a largura dos botões para dispositivos móveis */
+    font-size: 12px; /* Ajuste o tamanho da fonte para dispositivos móveis */
   }
 
   .modalFooter {

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import Modal from 'react-modal';
 import 'react-calendar/dist/Calendar.css';
-import { collection, query, where, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc, writeBatch } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import styles from './index.module.css';
@@ -17,9 +17,9 @@ const Index = () => {
   const [user, setUser] = useState(null);
   const [appointmentData, setAppointmentData] = useState({
     date: '',
-    time: '',
+    times: [''], // Array para múltiplos horários
     service: '',
-    nomeCrianca: '',
+    nomesCriancas: [''], // Array para múltiplos nomes de crianças
     funcionaria: '',
   });
 
@@ -143,6 +143,33 @@ const Index = () => {
     }));
   };
 
+  const handleNomeCriancaChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const newNomesCriancas = [...appointmentData.nomesCriancas];
+    newNomesCriancas[index] = e.target.value;
+    setAppointmentData((prevData) => ({
+      ...prevData,
+      nomesCriancas: newNomesCriancas,
+    }));
+  };
+
+  const handleTimeClick = (time: string, index: number) => {
+    const newTimes = [...appointmentData.times];
+    newTimes[index] = time;
+    setAppointmentData((prevData) => ({
+      ...prevData,
+      times: newTimes,
+    }));
+    setError(''); // Limpar o erro ao selecionar um horário
+  };
+
+  const addChild = () => {
+    setAppointmentData((prevData) => ({
+      ...prevData,
+      nomesCriancas: [...prevData.nomesCriancas, ''],
+      times: [...prevData.times, ''],
+    }));
+  };
+
   const isDateValid = (date: Date) => {
     const today = new Date();
     const isMonday = date.getDay() === 1;
@@ -177,13 +204,6 @@ const Index = () => {
     fetchBlockedTimes(date); // Buscar horários bloqueados para a data selecionada
   };
 
-  const handleTimeClick = (time: string) => {
-    setAppointmentData({
-      ...appointmentData,
-      time,
-    });
-  };
-
   const sendConfirmationEmail = async () => {
     try {
       const response = await fetch('/api/send-email', {
@@ -194,9 +214,9 @@ const Index = () => {
           userId: user?.uid,
           date: appointmentData.date,
           service: appointmentData.service,
-          time: appointmentData.time,
+          times: appointmentData.times,
           funcionaria: appointmentData.funcionaria,
-          nomeCrianca: appointmentData.nomeCrianca,
+          nomesCriancas: appointmentData.nomesCriancas,
           isEdit: false,
           isDelete: false,
         }),
@@ -218,22 +238,34 @@ const Index = () => {
       return;
     }
 
-    if (!appointmentData.funcionaria || !appointmentData.date || !appointmentData.time || !appointmentData.nomeCrianca) {
+    if (!appointmentData.funcionaria || !appointmentData.date || appointmentData.times.some(time => !time) || appointmentData.nomesCriancas.some(nome => !nome)) {
       setError('Todos os campos são obrigatórios.');
       return;
     }
 
+    if (appointmentData.nomesCriancas.length > 1 && appointmentData.times.some(time => !time)) {
+      setError('Selecione dois horários para concluir.');
+      return;
+    }
+
     try {
-      await addDoc(collection(firestore, 'agendamentos'), {
-        nomeCrianca: appointmentData.nomeCrianca,
-        servico: appointmentData.service,
-        data: appointmentData.date,
-        hora: appointmentData.time,
-        usuarioId: user?.uid,
-        usuarioEmail: user?.email,
-        status: 'agendado',
-        funcionaria: appointmentData.funcionaria,
+      const batch = writeBatch(firestore);
+
+      appointmentData.nomesCriancas.forEach((nome, index) => {
+        const appointmentRef = doc(collection(firestore, 'agendamentos'));
+        batch.set(appointmentRef, {
+          nomeCrianca: nome,
+          servico: appointmentData.service,
+          data: appointmentData.date,
+          hora: appointmentData.times[index],
+          usuarioId: user?.uid,
+          usuarioEmail: user?.email,
+          status: 'agendado',
+          funcionaria: appointmentData.funcionaria,
+        });
       });
+
+      await batch.commit();
 
       router.push('/Agendamentos'); // Redireciona imediatamente após salvar
       sendConfirmationEmail(); // Envia o e-mail em segundo plano
@@ -260,16 +292,16 @@ const Index = () => {
   };
 
   const handleBlockTime = async () => {
-    if (!selectedDate || !appointmentData.time || !appointmentData.funcionaria) return;
+    if (!selectedDate || !appointmentData.times[0] || !appointmentData.funcionaria) return;
 
     try {
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-      await setDoc(doc(firestore, 'blockedTimes', `${formattedDate}_${appointmentData.time}_${appointmentData.funcionaria}`), {
+      await setDoc(doc(firestore, 'blockedTimes', `${formattedDate}_${appointmentData.times[0]}_${appointmentData.funcionaria}`), {
         date: formattedDate,
-        time: appointmentData.time,
+        time: appointmentData.times[0],
         funcionaria: appointmentData.funcionaria,
       });
-      setBlockedTimes((prev) => [...prev, { date: formattedDate, time: appointmentData.time, funcionaria: appointmentData.funcionaria }]);
+      setBlockedTimes((prev) => [...prev, { date: formattedDate, time: appointmentData.times[0], funcionaria: appointmentData.funcionaria }]);
       setError('');
     } catch (error) {
       console.error('Erro ao bloquear o horário:', error);
@@ -277,12 +309,24 @@ const Index = () => {
     }
   };
 
+  const handleCancel = () => {
+    // Resetar o estado do appointmentData e availableTimes
+    setAppointmentData({
+      date: '',
+      times: [''],
+      service: '',
+      nomesCriancas: [''],
+      funcionaria: '',
+    });
+    setAvailableTimes([]);
+    setModalIsOpen(false);
+  };
+
   return (
     <ProtectedRoute>
       <div className={styles.container}>
         <div className={styles.formContainer}>
           <h2 className={styles.title}>Agendar Serviço</h2>
-          {error && <p style={{ color: 'red' }}>{error}</p>}
 
           <Calendar
             className={styles.reactCalendar}
@@ -304,7 +348,7 @@ const Index = () => {
 
           <Modal
             isOpen={modalIsOpen}
-            onRequestClose={() => setModalIsOpen(false)}
+            onRequestClose={handleCancel}
             className={styles.modalContent}
             overlayClassName={styles.modalOverlay}
           >
@@ -344,40 +388,52 @@ const Index = () => {
                 </select>
               </div>
 
-              <input
-                type="text"
-                name="nomeCrianca"
-                value={appointmentData.nomeCrianca}
-                onChange={handleInputChange}
-                placeholder="Nome da Criança"
-                required
-                className={styles.inputnome}
-              />
-
-              <div>
-                <strong>Horários Disponíveis:</strong>
-                <div className={styles.times}>
-                  {availableTimes.map((time) => (
-                    <button
-                      key={time}
-                      type="button"
-                      className={`${styles.timeButton} ${appointmentData.time === time ? styles.activeTime : ''}`}
-                      onClick={() => handleTimeClick(time)}
-                    >
-                      {time}
-                    </button>
-                  ))}
+              {appointmentData.nomesCriancas.map((nome, index) => (
+                <div key={index} className={styles.inputGroup}>
+                  <input
+                    type="text"
+                    name={`nomeCrianca-${index}`}
+                    value={nome}
+                    onChange={(e) => handleNomeCriancaChange(e, index)}
+                    placeholder="Nome da Criança"
+                    required
+                    className={styles.inputnome}
+                  />
                 </div>
-              </div>
+              ))}
 
-              {user?.tipo === 'admin' && appointmentData.time && (
+              {availableTimes.length > 0 && (
+                <div>
+                  <strong>Horários Disponíveis:</strong>
+                  <div className={styles.times}>
+                    {availableTimes.map((time) => (
+                      <button
+                        key={time}
+                        type="button"
+                        className={`${styles.timeButton} ${appointmentData.times.includes(time) ? styles.activeTime : ''}`}
+                        onClick={() => handleTimeClick(time, appointmentData.times.length - 1)}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button type="button" onClick={addChild} className={styles.buttonSecondary}>
+                Adicionar Outro Filho
+              </button>
+
+              {user?.tipo === 'admin' && appointmentData.times[0] && (
                 <button type="button" onClick={handleBlockTime} className={styles.blockButton}>
                   Bloquear Horário
                 </button>
               )}
 
+              {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+
               <div className={styles.modalFooter}>
-                <button type="button" onClick={() => setModalIsOpen(false)} className={styles.buttonSecondary}>
+                <button type="button" onClick={handleCancel} className={styles.buttonSecondary}>
                   Cancelar
                 </button>
                 <button type="submit" className={styles.button}>
