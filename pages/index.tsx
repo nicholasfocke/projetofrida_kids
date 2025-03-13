@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import Modal from 'react-modal';
 import 'react-calendar/dist/Calendar.css';
-import { collection, query, where, getDocs, setDoc, doc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc, writeBatch, runTransaction } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import styles from './index.module.css';
@@ -25,6 +25,7 @@ const Index = () => {
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false); // Novo estado para evitar piscar a mensagem
   const [error, setError] = useState('');
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [blockedDays, setBlockedDays] = useState<string[]>([]);
@@ -44,23 +45,25 @@ const Index = () => {
 
   const fetchAvailableTimes = async (date: Date | null, funcionaria: string) => {
     if (!date || !funcionaria) return;
-
+  
+    setIsLoadingTimes(true); // Indica que os horários estão carregando
+  
     try {
       const appointmentsQuery = query(
         collection(firestore, 'agendamentos'),
         where('data', '==', format(date, 'yyyy-MM-dd')),
         where('funcionaria', '==', funcionaria)
       );
-
+  
       const appointmentDocs = await getDocs(appointmentsQuery);
       const bookedTimes = appointmentDocs.docs.map((doc) => doc.data().hora);
-
+  
       const now = new Date();
       const allTimes = user?.tipo === 'admin' ? [...standardTimes, ...adminTimes] : standardTimes;
-
+  
       const filteredTimes = allTimes.filter((time) => {
         if (bookedTimes.includes(time.trim()) || blockedTimes.some(blockedTime => blockedTime.time === time.trim() && blockedTime.funcionaria === funcionaria)) return false;
-
+  
         if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
           const [hours, minutes] = time.split(':');
           const appointmentTime = new Date();
@@ -70,12 +73,15 @@ const Index = () => {
         }
         return true;
       });
-
+  
       setAvailableTimes(filteredTimes);
     } catch (error) {
       console.error('Erro ao buscar horários disponíveis:', error);
+    } finally {
+      setIsLoadingTimes(false); // Finaliza o carregamento após a busca
     }
   };
+  
 
   const fetchBlockedDays = async () => {
     try {
@@ -153,14 +159,20 @@ const Index = () => {
   };
 
   const handleTimeClick = (time: string, index: number) => {
+    if (!availableTimes.includes(time)) {
+      setError('Este horário já foi reservado. Escolha outro horário disponível.');
+      return;
+    }
+  
     const newTimes = [...appointmentData.times];
     newTimes[index] = time;
     setAppointmentData((prevData) => ({
       ...prevData,
       times: newTimes,
     }));
-    setError(''); // Limpar o erro ao selecionar um horário
+    setError(''); // Limpa o erro ao selecionar um horário válido
   };
+  
 
   const addChild = () => {
     setAppointmentData((prevData) => ({
@@ -232,49 +244,63 @@ const Index = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!user) {
       setError('Você precisa estar logado para fazer um agendamento.');
       return;
     }
-
+  
     if (!appointmentData.funcionaria || !appointmentData.date || appointmentData.times.some(time => !time) || appointmentData.nomesCriancas.some(nome => !nome)) {
       setError('Todos os campos são obrigatórios.');
       return;
     }
-
-    if (appointmentData.nomesCriancas.length > 1 && appointmentData.times.some(time => !time)) {
-      setError('Selecione dois horários para concluir.');
-      return;
-    }
-
+  
     try {
-      const batch = writeBatch(firestore);
-
-      appointmentData.nomesCriancas.forEach((nome, index) => {
-        const appointmentRef = doc(collection(firestore, 'agendamentos'));
-        batch.set(appointmentRef, {
-          nomeCrianca: nome,
-          servico: appointmentData.service,
-          data: appointmentData.date,
-          hora: appointmentData.times[index],
-          usuarioId: user?.uid,
-          usuarioEmail: user?.email,
-          status: 'agendado',
-          funcionaria: appointmentData.funcionaria,
+      await runTransaction(firestore, async (transaction) => {
+        // 🔹 Verifica no Firestore se algum horário já foi ocupado
+        const appointmentsQuery = query(
+          collection(firestore, 'agendamentos'),
+          where('data', '==', appointmentData.date),
+          where('funcionaria', '==', appointmentData.funcionaria),
+          where('hora', 'in', appointmentData.times) // Filtra pelos horários escolhidos
+        );
+  
+        const appointmentDocs = await getDocs(appointmentsQuery);
+  
+        if (!appointmentDocs.empty) {
+          const horariosOcupados = appointmentDocs.docs.map(doc => doc.data().hora);
+  
+          // 🔹 Atualiza a lista de horários disponíveis removendo os ocupados
+          setAvailableTimes(availableTimes.filter(time => !horariosOcupados.includes(time)));
+  
+          throw new Error(`Os horários ${horariosOcupados.join(', ')} já foram reservados. Por favor, escolha outro horário disponível.`);
+        }
+  
+        // 🔹 Caso os horários estejam livres, prossegue com o agendamento
+        appointmentData.nomesCriancas.forEach((nome, index) => {
+          const appointmentRef = doc(collection(firestore, 'agendamentos'));
+          transaction.set(appointmentRef, {
+            nomeCrianca: nome,
+            servico: appointmentData.service,
+            data: appointmentData.date,
+            hora: appointmentData.times[index],
+            usuarioId: user?.uid,
+            usuarioEmail: user?.email,
+            status: 'agendado',
+            funcionaria: appointmentData.funcionaria,
+          });
         });
       });
-
-      await batch.commit();
-
-      router.push('/Agendamentos'); // Redireciona imediatamente após salvar
-      sendConfirmationEmail(); // Envia o e-mail em segundo plano
+  
+      router.push('/Agendamentos'); // Redireciona após salvar
+      await sendConfirmationEmail(); // Envia o email de confirmação após salvar
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);
-      setError('Erro ao salvar o agendamento. Tente novamente.');
+      setError(error.message || 'Erro ao salvar o agendamento. Tente novamente.');
     }
   };
-
+  
+  
   const handleBlockDay = async () => {
     if (!selectedDate) return;
 
@@ -402,7 +428,11 @@ const Index = () => {
                 </div>
               ))}
 
-              {availableTimes.length > 0 && (
+              {isLoadingTimes ? (
+                <p style={{ color: 'blue', fontWeight: 'bold', marginTop: '10px' }}>
+                  Carregando horários disponíveis...
+                </p>
+              ) : availableTimes.length > 0 ? (
                 <div>
                   <strong>Horários Disponíveis:</strong>
                   <div className={styles.times}>
@@ -418,7 +448,14 @@ const Index = () => {
                     ))}
                   </div>
                 </div>
+              ) : (
+                appointmentData.funcionaria && !isLoadingTimes && ( // Só exibe a mensagem se o carregamento já terminou
+                  <p style={{ color: 'red', fontWeight: 'bold', marginTop: '10px' }}>
+                    Todos os horários nesta data para a funcionária já foram reservados. Entre em contato conosco para possivel encaixe.
+                  </p>
+                )
               )}
+
 
               <button type="button" onClick={addChild} className={styles.buttonSecondary}>
                 Adicionar Outro Filho
