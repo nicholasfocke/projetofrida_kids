@@ -27,6 +27,7 @@ const Index = () => {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isLoadingTimes, setIsLoadingTimes] = useState(false); // Novo estado para evitar piscar a mensagem
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false); //  Novo estado para bloquear múltiplos cliques
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [blockedDays, setBlockedDays] = useState<string[]>([]);
   const [blockedTimes, setBlockedTimes] = useState<{ date: string, time: string, funcionaria: string }[]>([]);
@@ -242,41 +243,43 @@ const Index = () => {
     }
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
+    if (isSubmitting) return; // Impede múltiplos envios
+    
+    setIsSubmitting(true); // Bloqueia o botão
+
     if (!user) {
       setError('Você precisa estar logado para fazer um agendamento.');
+      setIsSubmitting(false);
       return;
     }
-  
+
     if (!appointmentData.funcionaria || !appointmentData.date || appointmentData.times.some(time => !time) || appointmentData.nomesCriancas.some(nome => !nome)) {
       setError('Todos os campos são obrigatórios.');
+      setIsSubmitting(false);
       return;
     }
-  
+
     try {
       await runTransaction(firestore, async (transaction) => {
-        // 🔹 Verifica no Firestore se algum horário já foi ocupado
         const appointmentsQuery = query(
           collection(firestore, 'agendamentos'),
           where('data', '==', appointmentData.date),
           where('funcionaria', '==', appointmentData.funcionaria),
-          where('hora', 'in', appointmentData.times) // Filtra pelos horários escolhidos
+          where('hora', 'in', appointmentData.times)
         );
-  
+
         const appointmentDocs = await getDocs(appointmentsQuery);
-  
+
         if (!appointmentDocs.empty) {
           const horariosOcupados = appointmentDocs.docs.map(doc => doc.data().hora);
-  
-          // 🔹 Atualiza a lista de horários disponíveis removendo os ocupados
           setAvailableTimes(availableTimes.filter(time => !horariosOcupados.includes(time)));
-  
           throw new Error(`Os horários ${horariosOcupados.join(', ')} já foram reservados. Por favor, escolha outro horário disponível.`);
         }
-  
-        // 🔹 Caso os horários estejam livres, prossegue com o agendamento
+
         appointmentData.nomesCriancas.forEach((nome, index) => {
           const appointmentRef = doc(collection(firestore, 'agendamentos'));
           transaction.set(appointmentRef, {
@@ -291,14 +294,17 @@ const Index = () => {
           });
         });
       });
-  
-      router.push('/Agendamentos'); // Redireciona após salvar
-      await sendConfirmationEmail(); // Envia o email de confirmação após salvar
+
+      router.push('/Agendamentos'); 
+      await sendConfirmationEmail();
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);
       setError(error.message || 'Erro ao salvar o agendamento. Tente novamente.');
+    } finally {
+      setIsSubmitting(false); // Libera o botão após o processamento
     }
   };
+
   
   
   const handleBlockDay = async () => {
@@ -473,8 +479,8 @@ const Index = () => {
                 <button type="button" onClick={handleCancel} className={styles.buttonSecondary}>
                   Cancelar
                 </button>
-                <button type="submit" className={styles.button}>
-                  Confirmar
+                <button type="submit" className={styles.button} disabled={isSubmitting}>
+                  {isSubmitting ? 'Aguarde...' : 'Confirmar'}
                 </button>
               </div>
             </form>
