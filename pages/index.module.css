@@ -104,18 +104,25 @@
   background: white;
   padding: 20px;
   border-radius: 10px;
-  max-width: 500px;
-  width: 90%;
+  width: 50vw; /* Mantém largura fixa */
+  max-width: 500px; /* Define um limite de largura */
+  min-width: 350px;
+  max-height: 90vh; /* Garante que o modal não ultrapasse a tela */
+  overflow-y: auto; /* Adiciona rolagem interna quando necessário */
   outline: none;
   z-index: 1001;
 }
 
+
 .modalFooter {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Centraliza botões no mobile */
+  flex-wrap: wrap; /* Permite que os botões quebrem de linha se necessário */
   margin-top: 20px;
   gap: 15px;
+  width: 100%;
 }
+
 
 .buttonSecondary {
   background-color: #ccc;

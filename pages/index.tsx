@@ -46,13 +46,30 @@ const Index = () => {
 
   const fetchAvailableTimes = async (date: Date | null, funcionaria: string) => {
     if (!date || !funcionaria) return;
-  
-    setIsLoadingTimes(true); // Indica que os horários estão carregando
-  
+    
+    setIsLoadingTimes(true);
+    
     try {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+  
+      // Verifica se a funcionária está bloqueada nesse dia
+      const blockedDaysByEmployeeQuery = query(
+        collection(firestore, 'blockedDaysByEmployee'),
+        where('date', '==', formattedDate),
+        where('funcionaria', '==', funcionaria)
+      );
+      const blockedDaysByEmployeeSnapshot = await getDocs(blockedDaysByEmployeeQuery);
+  
+      // Se a funcionária estiver bloqueada, não exibe horários
+      if (!blockedDaysByEmployeeSnapshot.empty) {
+        setAvailableTimes([]);
+        return;
+      }
+  
+      // Se a funcionária não estiver bloqueada, continua normalmente
       const appointmentsQuery = query(
         collection(firestore, 'agendamentos'),
-        where('data', '==', format(date, 'yyyy-MM-dd')),
+        where('data', '==', formattedDate),
         where('funcionaria', '==', funcionaria)
       );
   
@@ -65,7 +82,7 @@ const Index = () => {
       const filteredTimes = allTimes.filter((time) => {
         if (bookedTimes.includes(time.trim()) || blockedTimes.some(blockedTime => blockedTime.time === time.trim() && blockedTime.funcionaria === funcionaria)) return false;
   
-        if (format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
+        if (formattedDate === format(now, 'yyyy-MM-dd')) {
           const [hours, minutes] = time.split(':');
           const appointmentTime = new Date();
           appointmentTime.setHours(parseInt(hours));
@@ -79,9 +96,10 @@ const Index = () => {
     } catch (error) {
       console.error('Erro ao buscar horários disponíveis:', error);
     } finally {
-      setIsLoadingTimes(false); // Finaliza o carregamento após a busca
+      setIsLoadingTimes(false);
     }
   };
+  
   
 
   const fetchBlockedDays = async () => {
@@ -95,19 +113,56 @@ const Index = () => {
     }
   };
 
+  const handleBlockDayForEmployee = async () => {
+    if (!selectedDate || !appointmentData.funcionaria) return;
+  
+    try {
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      await setDoc(doc(firestore, 'blockedDaysByEmployee', `${formattedDate}_${appointmentData.funcionaria}`), {
+        date: formattedDate,
+        funcionaria: appointmentData.funcionaria,
+      });
+  
+      // Atualiza os bloqueios apenas para a funcionária
+      setBlockedTimes((prev) => [
+        ...prev,
+        { date: formattedDate, time: 'all', funcionaria: appointmentData.funcionaria },
+      ]);
+      setError('');
+    } catch (error) {
+      console.error('Erro ao bloquear o dia da funcionária:', error);
+      setError('Erro ao bloquear o dia da funcionária. Tente novamente.');
+    }
+  };
+  
+
   const fetchBlockedTimes = async (date: Date) => {
     try {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+  
+      // Busca bloqueios gerais
       const blockedTimesQuery = query(
         collection(firestore, 'blockedTimes'),
-        where('date', '==', format(date, 'yyyy-MM-dd'))
+        where('date', '==', formattedDate)
       );
       const blockedTimesSnapshot = await getDocs(blockedTimesQuery);
       const fetchedBlockedTimes = blockedTimesSnapshot.docs.map((doc) => doc.data() as { date: string, time: string, funcionaria: string });
-      setBlockedTimes(fetchedBlockedTimes);
+  
+      // Busca bloqueios por funcionária
+      const blockedDaysByEmployeeQuery = query(
+        collection(firestore, 'blockedDaysByEmployee'),
+        where('date', '==', formattedDate)
+      );
+      const blockedDaysByEmployeeSnapshot = await getDocs(blockedDaysByEmployeeQuery);
+      const fetchedBlockedDaysByEmployee = blockedDaysByEmployeeSnapshot.docs.map((doc) => doc.data() as { date: string, time: string, funcionaria: string });
+  
+      // Atualiza o estado de bloqueios
+      setBlockedTimes([...fetchedBlockedTimes, ...fetchedBlockedDaysByEmployee]);
     } catch (error) {
       console.error('Erro ao buscar horários bloqueados:', error);
     }
   };
+  
 
   useEffect(() => {
     fetchAvailableTimes(selectedDate, appointmentData.funcionaria);
@@ -472,6 +527,13 @@ const Index = () => {
                   Bloquear Horário
                 </button>
               )}
+
+              {user?.tipo === 'admin' && appointmentData.funcionaria && (
+                <button type="button" onClick={handleBlockDayForEmployee} className={styles.blockButton}>
+                  Bloquear Dia da Funcionária
+                </button>
+              )}
+
 
               {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
 
