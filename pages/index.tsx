@@ -165,7 +165,9 @@ const Index = () => {
   
 
   useEffect(() => {
-    fetchAvailableTimes(selectedDate, appointmentData.funcionaria);
+    if (selectedDate && appointmentData.funcionaria) {
+      fetchAvailableTimes(selectedDate, appointmentData.funcionaria);
+    }
   }, [selectedDate, appointmentData.funcionaria, user, blockedTimes]);
 
   useEffect(() => {
@@ -302,7 +304,10 @@ const Index = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isSubmitting) return; // Impede múltiplos envios
+    if (isSubmitting) {
+      setError('Aguarde enquanto processamos seu agendamento.');
+      return; // Impede múltiplos envios
+    }
     
     setIsSubmitting(true); // Bloqueia o botão
 
@@ -314,6 +319,13 @@ const Index = () => {
 
     if (!appointmentData.funcionaria || !appointmentData.date || appointmentData.times.some(time => !time) || appointmentData.nomesCriancas.some(nome => !nome)) {
       setError('Todos os campos são obrigatórios.');
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Validação extra para garantir que os horários ainda estão disponíveis
+    if (availableTimes.length === 0 || appointmentData.times.some(time => !availableTimes.includes(time))) {
+      setError('Um ou mais horários selecionados já foram reservados. Atualize a página e tente novamente.');
       setIsSubmitting(false);
       return;
     }
@@ -503,16 +515,17 @@ const Index = () => {
                 <div>
                   <strong>Horários Disponíveis:</strong>
                   <div className={styles.times}>
-                    {availableTimes.map((time) => (
-                      <button
-                        key={time}
-                        type="button"
-                        className={`${styles.timeButton} ${appointmentData.times.includes(time) ? styles.activeTime : ''}`}
-                        onClick={() => handleTimeClick(time, appointmentData.times.length - 1)}
-                      >
-                        {time}
-                      </button>
-                    ))}
+                  {availableTimes.map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      className={`${styles.timeButton} ${appointmentData.times.includes(time) ? styles.activeTime : ''}`}
+                      onClick={() => handleTimeClick(time, appointmentData.times.length - 1)}
+                      disabled={!availableTimes.includes(time)} // Desabilita horários indisponíveis
+                    >
+                      {time}
+                    </button>
+                  ))}
                   </div>
                 </div>
               ) : (
