@@ -336,12 +336,18 @@ const Index = () => {
         }
 
         appointmentData.nomesCriancas.forEach((nome, index) => {
-          const appointmentRef = doc(collection(firestore, 'agendamentos'));
+          const appointmentRef = doc(
+            firestore,
+            'agendamentos',
+            `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`
+          ); // Define o ID do documento como o campo combinado
+        
           transaction.set(appointmentRef, {
             nomeCrianca: nome,
             servico: appointmentData.service,
             data: appointmentData.date,
             hora: appointmentData.times[index],
+            data_funcionaria_hora: `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`, // Campo combinado
             usuarioId: user?.uid,
             usuarioEmail: user?.email,
             status: 'agendado',
