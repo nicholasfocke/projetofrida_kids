@@ -39,10 +39,16 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.senha.length < 8) {
+      setError('A senha deve conter no mínimo 8 caracteres.');
+      return;
+    }
+    
     if (formData.senha !== formData.confirmarSenha) {
       setError('As senhas não coincidem.');
       return;
     }
+    
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
