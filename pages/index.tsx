@@ -303,82 +303,78 @@ const Index = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (isSubmitting) {
       setError('Aguarde enquanto processamos seu agendamento.');
-      return; // Impede múltiplos envios
+      return;
     }
-    
-    setIsSubmitting(true); // Bloqueia o botão
-
+  
+    setIsSubmitting(true);
+  
     if (!user) {
       setError('Você precisa estar logado para fazer um agendamento.');
       setIsSubmitting(false);
       return;
     }
-
+  
     if (!appointmentData.funcionaria || !appointmentData.date || appointmentData.times.some(time => !time) || appointmentData.nomesCriancas.some(nome => !nome)) {
       setError('Todos os campos são obrigatórios.');
       setIsSubmitting(false);
       return;
     }
-    
-    // Validação extra para garantir que os horários ainda estão disponíveis
+  
+    if (appointmentData.nomesCriancas.length !== appointmentData.times.length) {
+      setError('Erro interno: número de nomes e horários não correspondem.');
+      setIsSubmitting(false);
+      return;
+    }
+  
+    // Validação extra para experiência do usuário
     if (availableTimes.length === 0 || appointmentData.times.some(time => !availableTimes.includes(time))) {
       setError('Um ou mais horários selecionados já foram reservados. Atualize a página e tente novamente.');
       setIsSubmitting(false);
       return;
     }
-
+  
     try {
       await runTransaction(firestore, async (transaction) => {
-        const appointmentsQuery = query(
-          collection(firestore, 'agendamentos'),
-          where('data', '==', appointmentData.date),
-          where('funcionaria', '==', appointmentData.funcionaria),
-          where('hora', 'in', appointmentData.times)
-        );
-
-        const appointmentDocs = await getDocs(appointmentsQuery);
-
-        if (!appointmentDocs.empty) {
-          const horariosOcupados = appointmentDocs.docs.map(doc => doc.data().hora);
-          setAvailableTimes(availableTimes.filter(time => !horariosOcupados.includes(time)));
-          throw new Error(`Os horários ${horariosOcupados.join(', ')} já foram reservados. Por favor, escolha outro horário disponível.`);
-        }
-
-        appointmentData.nomesCriancas.forEach((nome, index) => {
+        for (let index = 0; index < appointmentData.nomesCriancas.length; index++) {
+          const nome = appointmentData.nomesCriancas[index];
+  
           const appointmentRef = doc(
             firestore,
             'agendamentos',
             `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`
-          ); // Define o ID do documento como o campo combinado
-        
+          );
+  
+          const existing = await transaction.get(appointmentRef);
+          if (existing.exists()) {
+            throw new Error(`O horário ${appointmentData.times[index]} já foi reservado.`);
+          }
+  
           transaction.set(appointmentRef, {
             nomeCrianca: nome,
             servico: appointmentData.service,
             data: appointmentData.date,
             hora: appointmentData.times[index],
-            data_funcionaria_hora: `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`, // Campo combinado
+            data_funcionaria_hora: `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`,
             usuarioId: user?.uid,
             usuarioEmail: user?.email,
             status: 'agendado',
             funcionaria: appointmentData.funcionaria,
           });
-        });
+        }
       });
-
-      router.push('/Agendamentos'); 
+  
+      router.push('/Agendamentos');
       await sendConfirmationEmail();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar agendamento:', error);
-      setError(error.message || 'Erro ao salvar o agendamento. Tente novamente.');
+      setError(error?.message || 'Erro ao salvar o agendamento. Tente novamente.');
     } finally {
-      setIsSubmitting(false); // Libera o botão após o processamento
+      setIsSubmitting(false);
     }
   };
-
-  
   
   const handleBlockDay = async () => {
     if (!selectedDate) return;
