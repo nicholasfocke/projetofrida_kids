@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Calendar from 'react-calendar';
 import Modal from 'react-modal';
 import 'react-calendar/dist/Calendar.css';
-import { collection, query, where, getDocs, setDoc, doc, writeBatch, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc, writeBatch, runTransaction, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import styles from './index.module.css';
@@ -329,41 +329,40 @@ const Index = () => {
       return;
     }
   
-    // Validação extra para experiência do usuário
-    if (availableTimes.length === 0 || appointmentData.times.some(time => !availableTimes.includes(time))) {
-      setError('Um ou mais horários selecionados já foram reservados. Atualize a página e tente novamente.');
-      setIsSubmitting(false);
-      return;
-    }
-  
     try {
+      const appointmentsToCheck = appointmentData.times.map((time, index) => ({
+        ref: doc(firestore, 'agendamentos', `${appointmentData.date}_${appointmentData.funcionaria}_${time}`),
+        time,
+        nome: appointmentData.nomesCriancas[index],
+      }));
+  
+      // Realiza todas as leituras antes de iniciar a transação
+      const existingAppointments = await Promise.all(
+        appointmentsToCheck.map(({ ref }) => getDoc(ref))
+      );
+  
+      const alreadyBooked = existingAppointments.some((snapshot) => snapshot.exists());
+      if (alreadyBooked) {
+        setError('Um ou mais horários selecionados já foram reservados. Atualize a página e tente novamente.');
+        setIsSubmitting(false);
+        return;
+      }
+  
+      // Inicia a transação após as leituras
       await runTransaction(firestore, async (transaction) => {
-        for (let index = 0; index < appointmentData.nomesCriancas.length; index++) {
-          const nome = appointmentData.nomesCriancas[index];
-  
-          const appointmentRef = doc(
-            firestore,
-            'agendamentos',
-            `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`
-          );
-  
-          const existing = await transaction.get(appointmentRef);
-          if (existing.exists()) {
-            throw new Error(`O horário ${appointmentData.times[index]} já foi reservado.`);
-          }
-  
-          transaction.set(appointmentRef, {
+        appointmentsToCheck.forEach(({ ref, time, nome }) => {
+          transaction.set(ref, {
             nomeCrianca: nome,
             servico: appointmentData.service,
             data: appointmentData.date,
-            hora: appointmentData.times[index],
-            data_funcionaria_hora: `${appointmentData.date}_${appointmentData.funcionaria}_${appointmentData.times[index]}`,
+            hora: time,
+            data_funcionaria_hora: `${appointmentData.date}_${appointmentData.funcionaria}_${time}`,
             usuarioId: user?.uid,
             usuarioEmail: user?.email,
             status: 'agendado',
             funcionaria: appointmentData.funcionaria,
           });
-        }
+        });
       });
   
       router.push('/Agendamentos');
