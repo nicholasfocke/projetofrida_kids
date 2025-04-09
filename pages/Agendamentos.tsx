@@ -228,6 +228,14 @@ const Agendamentos = () => {
     // Tentar salvar a edição do agendamento
     try {
       const agendamentoRef = doc(firestore, 'agendamentos', editingAgendamento.id);
+
+      // Exclui o horário antigo antes de salvar as alterações
+      const oldAgendamento = agendamentos.find((a) => a.id === editingAgendamento.id);
+      if (oldAgendamento) {
+        await deleteDoc(agendamentoRef);
+      }
+
+      // Salva o novo agendamento com as alterações
       await updateDoc(agendamentoRef, {
         servico: editingAgendamento.servico,
         data: editingAgendamento.data,
