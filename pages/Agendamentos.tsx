@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore'; // Firestore
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore'; // Firestore
 import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração do Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import { useRouter } from 'next/router'; // Para redirecionamento
@@ -172,20 +172,20 @@ const Agendamentos = () => {
 
   const handleSaveEdit = async () => {
     if (!editingAgendamento) return;
-
+  
     const now = new Date(); // Data e hora atuais
     const selectedDate = new Date(editingAgendamento.data); // Data selecionada no agendamento
     const dayOfWeek = selectedDate.getDay(); // 6 = Domingo, 0 = Segunda
-
+  
     // Verificação para bloquear domingos e segundas-feiras 
     const isSundayOrMonday = dayOfWeek === 6 || dayOfWeek === 0;
-
+  
     // Ajustar a data atual para o início do dia (00:00)
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
+  
     // Bloquear datas passadas e o próprio dia de hoje
     const isPastOrTodayDate = selectedDate <= today;
-
+  
     // Verificação de conflitos de horários para a funcionária
     const isTimeBookedForFuncionaria = agendamentos.some(
       (a) =>
@@ -194,25 +194,25 @@ const Agendamentos = () => {
         a.funcionaria === editingAgendamento.funcionaria &&
         a.id !== editingAgendamento.id
     );
-
+  
     // Bloquear agendamento em domingos (6) e segundas (1)
     if (isSundayOrMonday) {
       setError('O salão está fechado aos domingos e segundas-feiras.');
       return;
     }
-
+  
     // Bloquear datas passadas e hoje
     if (isPastOrTodayDate) {
       setError('Você não pode agendar para uma data que já passou ou para hoje. Se quiser agendar para hoje, remova este agendamento e faça um novo.');
       return;
     }
-
+  
     // Verificar se o horário já está ocupado
     if (isTimeBookedForFuncionaria) {
       setError(`Esse horário já está agendado para a ${editingAgendamento.funcionaria}.`);
       return;
     }
-
+  
     // Verificação de campos obrigatórios
     if (
       !editingAgendamento.servico ||
@@ -224,43 +224,55 @@ const Agendamentos = () => {
       setError('Preencha todos os campos.');
       return;
     }
-
+  
     // Tentar salvar a edição do agendamento
     try {
-      const agendamentoRef = doc(firestore, 'agendamentos', editingAgendamento.id);
-
-      // Exclui o horário antigo antes de salvar as alterações
       const oldAgendamento = agendamentos.find((a) => a.id === editingAgendamento.id);
       if (oldAgendamento) {
-        await deleteDoc(agendamentoRef);
+        // Exclui o horário antigo
+        await deleteDoc(doc(firestore, 'agendamentos', oldAgendamento.id));
       }
-
-      // Salva o novo agendamento com as alterações
-      await updateDoc(agendamentoRef, {
+  
+      // Substitui os dois pontos no horário para criar um ID válido
+      const sanitizedHora = editingAgendamento.hora.replace(':', '-');
+      const newAgendamentoRef = doc(
+        firestore,
+        'agendamentos',
+        `${editingAgendamento.data}_${editingAgendamento.funcionaria}_${sanitizedHora}`
+      );
+  
+      // Salva o novo agendamento, mesmo que o horário seja o mesmo
+      await setDoc(newAgendamentoRef, {
         servico: editingAgendamento.servico,
         data: editingAgendamento.data,
         hora: editingAgendamento.hora,
         nomeCrianca: editingAgendamento.nomeCrianca,
         funcionaria: editingAgendamento.funcionaria,
+        status: 'agendado',
+        usuarioId: user?.uid,
       });
-
+  
       setAgendamentos((prev) =>
         prev.map((agendamento) =>
-          agendamento.id === editingAgendamento.id ? editingAgendamento : agendamento
+          agendamento.id === editingAgendamento.id
+            ? { ...editingAgendamento, id: newAgendamentoRef.id }
+            : agendamento
         )
       );
-
+  
       // Chame a função para enviar o e-mail de confirmação de edição
       sendEditConfirmationEmail(user.email, editingAgendamento).catch((error) => {
         console.error('Erro ao enviar e-mail de confirmação:', error);
       });
-
+  
       setEditingAgendamento(null);
       setError('');
     } catch (error) {
       console.error('Erro ao salvar alterações: ', error);
+      setError('Erro ao salvar as alterações. Tente novamente.');
     }
   };
+  
 
   // Função para enviar e-mail de confirmação de edição
   const sendEditConfirmationEmail = async (email: string, agendamento: Agendamento) => {
