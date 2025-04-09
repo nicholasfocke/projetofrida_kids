@@ -341,6 +341,7 @@ const Index = () => {
         appointmentsToCheck.map(({ ref }) => getDoc(ref))
       );
   
+      // Verifica se algum horário já está reservado
       const alreadyBooked = existingAppointments.some((snapshot) => snapshot.exists());
       if (alreadyBooked) {
         setError('Um ou mais horários selecionados já foram reservados. Atualize a página e tente novamente.');
