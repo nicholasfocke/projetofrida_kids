@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore'; // Firestore
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore'; // Firestore
 import { auth, firestore } from '../firebase/firebaseConfig'; // Configuração do Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Para pegar o usuário logado
 import { useRouter } from 'next/router'; // Para redirecionamento
@@ -20,13 +20,8 @@ interface Agendamento {
 const Agendamentos = () => {
   const [user, setUser] = useState(null);
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
-  const [editingAgendamento, setEditingAgendamento] = useState<Agendamento | null>(null); // Estado para armazenar o agendamento que está sendo editado
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const services = ['Corte de cabelo', 'Franja', 'Penteado']; // Serviços disponíveis
-  const times = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30']; // Horários disponíveis
-  const [availableTimes, setAvailableTimes] = useState<string[]>(times);
-
   const router = useRouter(); // Hook para redirecionamento
 
   useEffect(() => {
@@ -42,33 +37,6 @@ const Agendamentos = () => {
   }, [router]);
 
   useEffect(() => {
-    if (editingAgendamento) {
-      fetchAvailableTimes(editingAgendamento.data, editingAgendamento.funcionaria);
-    }
-  }, [editingAgendamento?.data, editingAgendamento?.funcionaria]);
-
-  const fetchAvailableTimes = async (date: string, funcionaria: string) => {
-    if (!date || !funcionaria) return;
-
-    try {
-      const appointmentsQuery = query(
-        collection(firestore, 'agendamentos'),
-        where('data', '==', date),
-        where('funcionaria', '==', funcionaria)
-      );
-
-      const appointmentDocs = await getDocs(appointmentsQuery);
-      const bookedTimes = appointmentDocs.docs
-        .map((doc) => doc.data().hora);
-
-      const filteredTimes = times.filter((time) => !bookedTimes.includes(time));
-      setAvailableTimes(filteredTimes);
-    } catch (error) {
-      console.error('Erro ao buscar horários disponíveis:', error);
-    }
-  };
-
-  useEffect(() => {
     const fetchAgendamentos = async () => {
       if (user) {
         const q = query(
@@ -76,7 +44,7 @@ const Agendamentos = () => {
           where('usuarioId', '==', user.uid),
           where('status', '==', 'agendado')
         );
-  
+
         try {
           const querySnapshot = await getDocs(q);
           const fetchedAgendamentos: Agendamento[] = [];
@@ -92,14 +60,14 @@ const Agendamentos = () => {
               funcionaria: agendamentoData.funcionaria || '',
             });
           });
-  
+
           // Ordenar agendamentos por data e hora em ordem crescente
           fetchedAgendamentos.sort((a, b) => {
             const dateA = new Date(`${a.data}T${a.hora}`);
             const dateB = new Date(`${b.data}T${b.hora}`);
             return dateA.getTime() - dateB.getTime();
           });
-  
+
           setAgendamentos(fetchedAgendamentos);
           setLoading(false);
         } catch (error) {
@@ -107,7 +75,7 @@ const Agendamentos = () => {
         }
       }
     };
-  
+
     fetchAgendamentos();
   }, [user]);
 
@@ -165,139 +133,6 @@ const Agendamentos = () => {
     }
   };
 
-  const handleEdit = async (agendamento: Agendamento) => {
-    setEditingAgendamento(agendamento);
-    fetchAvailableTimes(agendamento.data, agendamento.funcionaria);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingAgendamento) return;
-  
-    const now = new Date(); // Data e hora atuais
-    const selectedDate = new Date(editingAgendamento.data); // Data selecionada no agendamento
-    const dayOfWeek = selectedDate.getDay(); // 6 = Domingo, 0 = Segunda
-  
-    // Verificação para bloquear domingos e segundas-feiras 
-    const isSundayOrMonday = dayOfWeek === 6 || dayOfWeek === 0;
-  
-    // Ajustar a data atual para o início do dia (00:00)
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
-    // Bloquear datas passadas e o próprio dia de hoje
-    const isPastOrTodayDate = selectedDate <= today;
-  
-    // Verificação de conflitos de horários para a funcionária
-    const isTimeBookedForFuncionaria = agendamentos.some(
-      (a) =>
-        a.hora === editingAgendamento.hora &&
-        a.data === editingAgendamento.data &&
-        a.funcionaria === editingAgendamento.funcionaria &&
-        a.id !== editingAgendamento.id
-    );
-  
-    // Bloquear agendamento em domingos (6) e segundas (1)
-    if (isSundayOrMonday) {
-      setError('O salão está fechado aos domingos e segundas-feiras.');
-      return;
-    }
-  
-    // Bloquear datas passadas e hoje
-    if (isPastOrTodayDate) {
-      setError('Você não pode agendar para uma data que já passou ou para hoje. Se quiser agendar para hoje, remova este agendamento e faça um novo.');
-      return;
-    }
-  
-    // Verificar se o horário já está ocupado
-    if (isTimeBookedForFuncionaria) {
-      setError(`Esse horário já está agendado para a ${editingAgendamento.funcionaria}.`);
-      return;
-    }
-  
-    // Verificação de campos obrigatórios
-    if (
-      !editingAgendamento.servico ||
-      !editingAgendamento.data ||
-      !editingAgendamento.hora ||
-      !editingAgendamento.nomeCrianca ||
-      !editingAgendamento.funcionaria
-    ) {
-      setError('Preencha todos os campos.');
-      return;
-    }
-  
-    // Tentar salvar a edição do agendamento
-    try {
-      const oldAgendamento = agendamentos.find((a) => a.id === editingAgendamento.id);
-      if (oldAgendamento) {
-        // Exclui o horário antigo
-        await deleteDoc(doc(firestore, 'agendamentos', oldAgendamento.id));
-      }
-  
-      // Substitui os dois pontos no horário para criar um ID válido
-      const sanitizedHora = editingAgendamento.hora.replace(':', '-');
-      const newAgendamentoRef = doc(
-        firestore,
-        'agendamentos',
-        `${editingAgendamento.data}_${editingAgendamento.funcionaria}_${sanitizedHora}`
-      );
-  
-      // Salva o novo agendamento, mesmo que o horário seja o mesmo
-      await setDoc(newAgendamentoRef, {
-        servico: editingAgendamento.servico,
-        data: editingAgendamento.data,
-        hora: editingAgendamento.hora,
-        nomeCrianca: editingAgendamento.nomeCrianca,
-        funcionaria: editingAgendamento.funcionaria,
-        status: 'agendado',
-        usuarioId: user?.uid,
-      });
-  
-      setAgendamentos((prev) =>
-        prev.map((agendamento) =>
-          agendamento.id === editingAgendamento.id
-            ? { ...editingAgendamento, id: newAgendamentoRef.id }
-            : agendamento
-        )
-      );
-  
-      // Chame a função para enviar o e-mail de confirmação de edição
-      sendEditConfirmationEmail(user.email, editingAgendamento).catch((error) => {
-        console.error('Erro ao enviar e-mail de confirmação:', error);
-      });
-  
-      setEditingAgendamento(null);
-      setError('');
-    } catch (error) {
-      console.error('Erro ao salvar alterações: ', error);
-      setError('Erro ao salvar as alterações. Tente novamente.');
-    }
-  };
-  
-
-  // Função para enviar e-mail de confirmação de edição
-  const sendEditConfirmationEmail = async (email: string, agendamento: Agendamento) => {
-    try {
-      await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          userId: user.uid,
-          date: agendamento.data,
-          service: agendamento.servico,
-          times: [agendamento.hora],
-          funcionaria: agendamento.funcionaria,
-          nomesCriancas: [agendamento.nomeCrianca],
-          isEdit: true // Indicador de que o e-mail é de edição
-        }),
-      });
-    } catch (error) {
-      console.error('Erro ao enviar e-mail de confirmação de edição:', error);
-    }
-  };
-
   if (loading) {
     return <p>Carregando agendamentos...</p>;
   }
@@ -311,103 +146,21 @@ const Agendamentos = () => {
         <div className={styles.cardsContainer}>
           {agendamentos.map((agendamento) => (
             <div key={agendamento.id} className={styles.card}>
-              {editingAgendamento && editingAgendamento.id === agendamento.id ? (
-                <div className={styles.editForm}>
-                  <h2>Editar Agendamento</h2>
-                  <select
-                    value={editingAgendamento.servico}
-                    onChange={(e) =>
-                      setEditingAgendamento({ ...editingAgendamento, servico: e.target.value })
-                    }
-                  >
-                    <option value="" disabled>
-                      Selecione um serviço
-                    </option>
-                    {services.map((service) => (
-                      <option key={service} value={service}>
-                        {service}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="date"
-                    value={editingAgendamento.data}
-                    onChange={(e) =>
-                      setEditingAgendamento({ ...editingAgendamento, data: e.target.value })
-                    }
-                  />
-                  <select
-                    value={editingAgendamento?.hora || ''}
-                    onChange={(e) =>
-                      setEditingAgendamento({ ...editingAgendamento, hora: e.target.value })
-                    }
-                  >
-                    <option value="" disabled>
-                      Selecione um horário
-                    </option>
-                    {availableTimes.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={editingAgendamento.funcionaria}
-                    onChange={(e) => {
-                      setEditingAgendamento({
-                        ...editingAgendamento,
-                        funcionaria: e.target.value,
-                      });
-                      fetchAvailableTimes(editingAgendamento.data, e.target.value); // Atualizar horários disponíveis ao selecionar funcionária
-                    }}
-                  >
-                    <option value="" disabled>
-                      Selecione a Funcionária
-                    </option>
-                    <option value="Frida">Frida</option>
-                    <option value="Ana">Ana</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={editingAgendamento.nomeCrianca}
-                    onChange={(e) =>
-                      setEditingAgendamento({
-                        ...editingAgendamento,
-                        nomeCrianca: e.target.value,
-                      })
-                    }
-                  />
-                  <button onClick={handleSaveEdit}>Salvar</button>
-                  <button
-                    onClick={() => setEditingAgendamento(null)}
-                    style={{ backgroundColor: 'red', color: 'white' }}
-                  >
-                    Cancelar
-                  </button>
-                  {error && <p style={{ color: 'white' }}>{error}</p>}
-                </div>
-              ) : (
-                <>
-                  <h2>{agendamento.servico}</h2>
-                  <p>Criança: {agendamento.nomeCrianca}</p>
-                  <p>Data: {agendamento.data ? format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR }) : 'Data inválida'}</p>
-                  <p>Hora: {agendamento.hora}</p>
-                  <p>Funcionária: {agendamento.funcionaria}</p>
-                  <p>Status: {agendamento.status}</p>
-                  <div className={styles.cardActions}>
-                    <button className={styles.editButton} onClick={() => handleEdit(agendamento)}>
-                      Editar
-                    </button>
-                    <button
-                      className={styles.removeButton}
-                      onClick={() => handleRemove(agendamento.id)}
-                      style={{ backgroundColor: 'red', color: 'white' }}
-                    >
-                      Remover
-                    </button>
-                  </div>
-                </>
-              )}
+              <h2>{agendamento.servico}</h2>
+              <p>Criança: {agendamento.nomeCrianca}</p>
+              <p>Data: {agendamento.data ? format(parseISO(agendamento.data), 'dd/MM/yyyy', { locale: ptBR }) : 'Data inválida'}</p>
+              <p>Hora: {agendamento.hora}</p>
+              <p>Funcionária: {agendamento.funcionaria}</p>
+              <p>Status: {agendamento.status}</p>
+              <div className={styles.cardActions}>
+                <button
+                  className={styles.removeButton}
+                  onClick={() => handleRemove(agendamento.id)}
+                  style={{ backgroundColor: 'red', color: 'white' }}
+                >
+                  Remover
+                </button>
+              </div>
             </div>
           ))}
         </div>
