@@ -4,7 +4,6 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, firestore } from '../firebase/firebaseConfig';
 import bcrypt from 'bcryptjs';
-import InputMask from 'react-input-mask';
 import styles from './register.module.css';
 import Image from 'next/image';
 
@@ -22,10 +21,23 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
+  const formatTelefone = (value: string) => {
+    // Remove caracteres não numéricos
+    const numericValue = value.replace(/\D/g, '');
+
+    // Aplica a máscara (XX) XXXXX-XXXX
+    if (numericValue.length <= 10) {
+      return numericValue.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+    }
+    return numericValue.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: name === 'telefone' ? formatTelefone(value) : value, // Formata o telefone
     });
   };
 
@@ -39,16 +51,38 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const telefoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+    if (!telefoneRegex.test(formData.telefone)) {
+      setError('O telefone deve estar no formato (XX) XXXXX-XXXX.');
+      return;
+    }
+
     if (formData.senha.length < 8) {
       setError('A senha deve conter no mínimo 8 caracteres.');
       return;
     }
-    
+
     if (formData.senha !== formData.confirmarSenha) {
       setError('As senhas não coincidem.');
       return;
     }
-    
+
+    // Lista de domínios de e-mail permitidos
+    const allowedDomains = [
+      'gmail.com',
+      'hotmail.com',
+      'outlook.com',
+      'yahoo.com',
+      'icloud.com',
+      'live.com',
+    ];
+
+    const emailDomain = formData.email.split('@')[1];
+    if (!allowedDomains.includes(emailDomain)) {
+      setError('Por favor, use um e-mail válido como @gmail.com, @hotmail.com, etc.');
+      return;
+    }
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
@@ -106,22 +140,15 @@ const Register = () => {
             required
             className={styles.input}
           />
-          <InputMask
-            mask="(99) 99999-9999"
+          <input
+            name="telefone"
+            type="text"
+            placeholder="Telefone"
             value={formData.telefone}
             onChange={handleChange}
-          >
-            {(inputProps: any) => (
-              <input
-                {...inputProps}
-                name="telefone"
-                type="text"
-                placeholder="Telefone"
-                required
-                className={styles.input}
-              />
-            )}
-          </InputMask>
+            required
+            className={styles.input}
+          />
 
           {/* Campo de senha com ícone de olho */}
           <div className={styles.passwordContainer}>
