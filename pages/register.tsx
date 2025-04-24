@@ -25,11 +25,11 @@ const Register = () => {
     // Remove caracteres não numéricos
     const numericValue = value.replace(/\D/g, '');
 
-    // Aplica a máscara (XX) XXXXX-XXXX
+    // Aplica a máscara XX XXXXX-XXXX ou XX XXXX-XXXX
     if (numericValue.length <= 10) {
-      return numericValue.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+      return numericValue.replace(/(\d{2})(\d{4})(\d{0,4})/, '$1 $2$3');
     }
-    return numericValue.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    return numericValue.replace(/(\d{2})(\d{5})(\d{0,4})/, '$1 $2$3');
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,9 +52,9 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const telefoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+    const telefoneRegex = /^\d{2} \d{4,5}\d{4}$/;
     if (!telefoneRegex.test(formData.telefone)) {
-      setError('O telefone deve estar no formato (XX) XXXXX-XXXX.');
+      setError('Preencha completamente o campo de telefone com pelo menos 8 números, exemplo: "82 999999999" ou "82 99999999".');
       return;
     }
 
@@ -68,19 +68,15 @@ const Register = () => {
       return;
     }
 
-    // Lista de domínios de e-mail permitidos
-    const allowedDomains = [
-      'gmail.com',
-      'hotmail.com',
-      'outlook.com',
-      'yahoo.com',
-      'icloud.com',
-      'live.com',
-    ];
+    const blockedDomains = ['msn.com', 'aol.com', 'example.com',  'mailinator.com', 'tempmail.com', 'guerrillamail.com', '10minutemail.com',
+      'trashmail.com', 'yopmail.com', 'getnada.com', 'maildrop.cc',
+      'dispostable.com', 'emailondeck.com', 'fakeinbox.com', 'mintemail.com',
+      'mytemp.email', 'throwawaymail.com', 'spambog.com', 'mailcatch.com',
+      'sharklasers.com', 'inboxbear.com', 'nowmymail.com', 'yahoo.com', 'yahoo.com.br','ig.com.br', 'bol.com.br', 'zipmail.com.br'];
 
     const emailDomain = formData.email.split('@')[1];
-    if (!allowedDomains.includes(emailDomain)) {
-      setError('Por favor, use um e-mail válido como @gmail.com, @hotmail.com, etc.');
+    if (blockedDomains.includes(emailDomain)) {
+      setError('O domínio do e-mail fornecido não é permitido. Por favor, use outro e-mail válido, exemplo "@gmail, @hotmail etc.');
       return;
     }
 
